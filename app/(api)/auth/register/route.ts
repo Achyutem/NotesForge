@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/app/lib/dbConnect';
-import User from '@/app/models/users';
-import bcrypt from 'bcryptjs';
+import User from '@/app/(models)/users';
 import jwt from 'jsonwebtoken';
 
 export async function POST(req: Request) {
@@ -10,25 +9,19 @@ export async function POST(req: Request) {
 
     const { email, password } = await req.json();
 
-    // Find user
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
       return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
+        { error: 'Email already registered' },
+        { status: 400 }
       );
     }
 
-    // Check password
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      );
-    }
+    const user = await User.create({
+      email: email.toLowerCase(),
+      password
+    });
 
-    // Generate token
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET || 'default-secret',
@@ -36,7 +29,7 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json({
-      message: 'Login successful',
+      message: 'Registration successful',
       token,
       user: {
         id: user._id,
@@ -45,9 +38,9 @@ export async function POST(req: Request) {
     });
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Registration error:', error);
     return NextResponse.json(
-      { error: 'Login failed' },
+      { error: 'Registration failed' },
       { status: 500 }
     );
   }
