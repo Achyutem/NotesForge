@@ -32,7 +32,7 @@ const AuthPage = () => {
         throw new Error("Passwords do not match");
       }
 
-      const endpoint = isLogin ? "/(api)/auth/login" : "/(api)/auth/register";
+      const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
