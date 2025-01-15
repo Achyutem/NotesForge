@@ -38,11 +38,11 @@ export async function POST(request : any) {
 }
 
 export async function DELETE(request : any) {
-    const {userId} = await request.json()
+    const id = request.nextUrl.searchParams.get('id')
     try {
         await dbConnect();
 
-        await Todo.deleteOne({userId})
+        await Todo.findByIdAndDelete(id)
 
         return NextResponse.json({ message: "Todo deleted"}, {status : 201});
     } catch (error) {

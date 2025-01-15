@@ -25,10 +25,9 @@ const Todos: React.FC = () => {
   useEffect(() => {
     const fetchTodos = async () => {
       try {
-        console.log("enters try block");
+        setLoading(true);
         const response = await axios.get("/api/todos");
-        console.log("response", response);
-        setTodos(response.data);
+        setTodos(response.data.existingTodos);
       } catch (err) {
         setError("Failed to fetch todos.");
       } finally {
@@ -46,9 +45,10 @@ const Todos: React.FC = () => {
     }
 
     try {
-      const response = await axios.post("/api/todos", newTodo);
-      setTodos([...todos, response.data]);
+      await axios.post("/api/todos", newTodo);
       setNewTodo({ title: "", description: "" });
+      const response = await axios.get("/api/todos");
+      setTodos(response.data.existingTodos);
     } catch (err) {
       setError("Failed to add todo.");
     }
@@ -69,8 +69,11 @@ const Todos: React.FC = () => {
 
   const handleDeleteTodo = async (id: string) => {
     try {
-      await axios.delete(`/api/todos/${id}`);
-      setTodos(todos.filter((todo) => todo._id !== id));
+      await axios.delete(`/api/todos?id=${id}`);
+      //? we can either refresh it right away or filter it and save a re-render
+      // setTodos(todos.filter((todo) => todo._id !== id));
+      const response = await axios.get("/api/todos");
+      setTodos(response.data.existingTodos);
     } catch (err) {
       setError("Failed to delete todo.");
     }
