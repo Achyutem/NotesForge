@@ -37,3 +37,21 @@ export async function POST(request : any) {
     }
 }
 
+export async function DELETE(request : any) {
+    const {userId} = await request.json()
+    try {
+        await dbConnect();
+
+        await Todo.deleteOne({userId})
+
+        return NextResponse.json({ message: "Todo deleted"}, {status : 201});
+    } catch (error) {
+        console.error("Error fetching todos:", error);
+
+        return NextResponse.json(
+            { error: "Failed to delete todos" },
+            { status: 500 }
+        );
+    }
+}
+
