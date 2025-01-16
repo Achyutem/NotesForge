@@ -55,3 +55,51 @@ export async function DELETE(request : any) {
     }
 }
 
+export async function PATCH(request: any) {
+    try {
+      const id = request.nextUrl.searchParams.get('id');
+  
+      if (!id) {
+        return NextResponse.json(
+          { error: "Invalid ID" },
+          { status: 400 }
+        );
+      }
+
+      const { completed } = await request.json();
+      if (typeof completed !== 'boolean') {
+        return NextResponse.json(
+          { error: "Invalid 'completed' field" },
+          { status: 400 }
+        );
+      }
+
+      await dbConnect();
+  
+      const updatedTodo = await Todo.findByIdAndUpdate(
+        id,
+        { completed },
+        { new: true }
+      );
+  
+      if (!updatedTodo) {
+        return NextResponse.json(
+          { error: "Todo not found" },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json(
+        { message: "Todo updated", todo: updatedTodo },
+        { status: 200 }
+      );
+    } catch (error) {
+      console.error("Error updating todo:", error);
+  
+      return NextResponse.json(
+        { error: "Failed to update todo" },
+        { status: 500 }
+      );
+    }
+  }
+  
