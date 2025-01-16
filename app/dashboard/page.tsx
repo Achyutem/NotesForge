@@ -285,7 +285,7 @@ const Todos = () => {
           setIsModalOpen(false);
           setEditingTodo(null);
         }}
-        // onSubmit={}
+        onSubmit={handleAddTodo}
         // editData={}
       />
     </div>
