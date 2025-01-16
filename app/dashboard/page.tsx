@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { Plus, X } from "lucide-react";
 
 interface Todo {
   _id: string;
@@ -10,24 +11,93 @@ interface Todo {
   completed: boolean;
 }
 
-const Todos: React.FC = () => {
+const TodoModal = ({ isOpen, onClose, onSubmit, editData }: any) => {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+
+  useEffect(() => {
+    if (editData) {
+      setTitle(editData.title);
+      setDescription(editData.description);
+    }
+  }, [editData]);
+
+  const handleSubmit = () => {
+    if (!title.trim()) return;
+    onSubmit({ title, description });
+    setTitle("");
+    setDescription("");
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div
+        className="bg-black rounded-2xl p-6 w-full max-w-md m-4 border-2"
+        style={{ borderColor: "#A594F9" }}>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-white">
+            {editData ? "Edit Task" : "Add New Task"}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <input
+          type="text"
+          placeholder="Task title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full px-4 py-3 bg-gray-50 rounded-xl mb-4 border-0 text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-[#A594F9]"
+        />
+        <textarea
+          placeholder="Task description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="w-full px-4 py-3 bg-gray-50 rounded-xl mb-6 border-0 text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-[#A594F9] min-h-[100px]"
+        />
+        <div className="flex gap-4">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-white hover:bg-gray-50 hover:text-black transition-colors">
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="flex-1 px-4 py-3 rounded-xl bg-[#A594F9] text-white hover:bg-[#8A7AD6] transition-colors">
+            {editData ? "Save Changes" : "Add Task"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Todos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [newTodo, setNewTodo] = useState<{
-    title: string;
-    description: string;
-  }>({
-    title: "",
-    description: "",
-  });
+  const [activeTab, setActiveTab] = useState<"all" | "incomplete" | "complete">(
+    "all"
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Fetch Todos
   useEffect(() => {
     const fetchTodos = async () => {
       try {
         setLoading(true);
         const response = await axios.get("/api/todos");
-        setTodos(response.data.existingTodos);
+        setTodos(
+          Array.isArray(response.data.existingTodos)
+            ? response.data.existingTodos
+            : []
+        );
       } catch (err) {
         setError("Failed to fetch todos.");
       } finally {
@@ -38,17 +108,18 @@ const Todos: React.FC = () => {
     fetchTodos();
   }, []);
 
-  const handleAddTodo = async () => {
-    if (!newTodo.title.trim()) {
-      console.log("Title cannot be empty");
-      return;
-    }
-
+  const handleAddTodo = async (todoData: {
+    title: string;
+    description: string;
+  }) => {
     try {
-      await axios.post("/api/todos", newTodo);
-      setNewTodo({ title: "", description: "" });
+      await axios.post("/api/todos", todoData);
       const response = await axios.get("/api/todos");
-      setTodos(response.data.existingTodos);
+      setTodos(
+        Array.isArray(response.data.existingTodos)
+          ? response.data.existingTodos
+          : []
+      );
     } catch (err) {
       setError("Failed to add todo.");
     }
@@ -56,11 +127,11 @@ const Todos: React.FC = () => {
 
   const handleToggleComplete = async (id: string, completed: boolean) => {
     try {
-      await axios.put(`/api/todos/${id}`, { completed: !completed });
-      setTodos(
-        todos.map((todo) =>
-          todo._id === id ? { ...todo, completed: !completed } : todo
-        )
+      const response = await axios.patch(`/api/todos?id=${id}`, {
+        completed: !completed,
+      });
+      setTodos((prevTodos) =>
+        prevTodos.map((todo) => (todo._id === id ? response.data.todo : todo))
       );
     } catch (err) {
       setError("Failed to update todo.");
@@ -70,73 +141,153 @@ const Todos: React.FC = () => {
   const handleDeleteTodo = async (id: string) => {
     try {
       await axios.delete(`/api/todos?id=${id}`);
-      //? we can either refresh it right away or filter it and save a re-render
-      // setTodos(todos.filter((todo) => todo._id !== id));
       const response = await axios.get("/api/todos");
-      setTodos(response.data.existingTodos);
+      setTodos(
+        Array.isArray(response.data.existingTodos)
+          ? response.data.existingTodos
+          : []
+      );
     } catch (err) {
       setError("Failed to delete todo.");
     }
   };
 
+  const cardColors = [
+    "bg-[#FFE2E2]",
+    "bg-[#E2F0FF]",
+    "bg-[#E2FFE2]",
+    "bg-[#FFE2FF]",
+    "bg-[#FFF4E2]",
+    "bg-[#E2FFFF]",
+  ];
+
+  const getRandomColor = () =>
+    cardColors[Math.floor(Math.random() * cardColors.length)];
+
+  const filteredTodos = Array.isArray(todos)
+    ? todos.filter((todo) => {
+        if (activeTab === "complete") return todo.completed;
+        if (activeTab === "incomplete") return !todo.completed;
+        return true;
+      })
+    : [];
+
   if (loading)
-    return <div className="text-center text-gray-500">Loading...</div>;
-  if (error) return <div className="text-center text-red-500">{error}</div>;
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-white">
+        Loading...
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-red-500">
+        {error}
+      </div>
+    );
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <h1 className="text-2xl font-bold text-center mb-6">Your Todos</h1>
-      <div className="bg-white shadow rounded-lg p-4">
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Title"
-            className="w-full p-2 border rounded mb-2"
-            value={newTodo.title}
-            onChange={(e) => setNewTodo({ ...newTodo, title: e.target.value })}
-          />
-          <textarea
-            placeholder="Description"
-            className="w-full p-2 border rounded"
-            value={newTodo.description}
-            onChange={(e) =>
-              setNewTodo({ ...newTodo, description: e.target.value })
-            }></textarea>
+    <div className="min-h-screen bg-black">
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-2xl font-semibold text-white">
+              Manage your tasks
+            </h1>
+            <p className="text-gray-400 text-sm mt-1">Today's progress</p>
+          </div>
           <button
-            onClick={handleAddTodo}
-            className="mt-2 w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
-            Add Todo
+            onClick={() => setIsModalOpen(true)}
+            className="px-6 py-3 bg-[#A594F9] text-white rounded-xl hover:bg-[#8A7AD6] transition-colors flex items-center gap-2">
+            <Plus className="w-5 h-5" />
+            Add Task
           </button>
         </div>
-        <ul>
-          {todos.map((todo) => (
-            <li
-              key={todo._id}
-              className="flex items-center justify-between p-2 border-b hover:bg-gray-50">
-              <div>
-                <h2 className="font-semibold">{todo.title}</h2>
-                <p className="text-sm text-gray-600">{todo.description}</p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => handleToggleComplete(todo._id, todo.completed)}
-                  className={`py-1 px-3 rounded ${
-                    todo.completed
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-300 text-black"
-                  }`}>
-                  {todo.completed ? "Completed" : "Mark Complete"}
-                </button>
-                <button
-                  onClick={() => handleDeleteTodo(todo._id)}
-                  className="py-1 px-3 rounded bg-red-500 text-white hover:bg-red-600">
-                  Delete
-                </button>
-              </div>
-            </li>
+
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          {(["all", "incomplete", "complete"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === tab
+                  ? "bg-[#A594F9] text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+              }`}>
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
           ))}
-        </ul>
+        </div>
+
+        {/* Todo List */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredTodos.map((todo) => {
+            const cardColor = getRandomColor();
+            return (
+              <div
+                key={todo._id}
+                className={`${cardColor} rounded-2xl p-4 transition-all`}>
+                <h3
+                  className={`text-lg font-medium mb-2 ${
+                    todo.completed
+                      ? "text-gray-500 line-through"
+                      : "text-gray-800"
+                  }`}>
+                  {todo.title}
+                </h3>
+                {todo.description && (
+                  <p
+                    className={`mb-4 ${
+                      todo.completed
+                        ? "text-gray-400 line-through"
+                        : "text-gray-600"
+                    }`}>
+                    {todo.description}
+                  </p>
+                )}
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => {
+                      setEditingTodo(todo);
+                      setIsModalOpen(true);
+                    }}
+                    className="px-4 py-2 rounded-lg bg-white/50 backdrop-blur-sm text-gray-700 hover:bg-white/70">
+                    Edit
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleToggleComplete(todo._id, todo.completed)
+                    }
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      todo.completed
+                        ? "bg-green-500 text-white"
+                        : "bg-white/50 backdrop-blur-sm text-gray-700 hover:bg-white/70"
+                    }`}>
+                    {todo.completed ? "Completed" : "Complete"}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteTodo(todo._id)}
+                    className="px-4 py-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
+
+      <TodoModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingTodo(null);
+        }}
+        // onSubmit={}
+        // editData={}
+      />
     </div>
   );
 };
