@@ -1,337 +1,718 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Plus, Trash, Search, Tag, X } from "lucide-react";
 import axios from "axios";
-import { Plus, X, CheckCircle, Trash, Edit } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Todo {
   _id: string;
   title: string;
   description: string;
   completed: boolean;
+  tags?: string[];
 }
-
-interface TodoModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (
-    data: { title: string; description: string },
-    todoId?: string
-  ) => void;
-  editData?: Todo | null;
-}
-
-const TodoModal = ({ isOpen, onClose, onSubmit, editData }: TodoModalProps) => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-
-  useEffect(() => {
-    if (editData) {
-      setTitle(editData.title);
-      setDescription(editData.description);
-    } else {
-      setTitle("");
-      setDescription("");
-    }
-  }, [editData, isOpen]);
-
-  const handleSubmit = () => {
-    if (!title.trim()) return;
-    onSubmit({ title, description }, editData?._id);
-    onClose();
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
-      <div
-        className="bg-black rounded-2xl p-8 w-full max-w-md m-4 border-2"
-        style={{
-          borderColor: "#A594F9",
-          background: "linear-gradient(to bottom right, #000000, #1a1a1a)",
-        }}>
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold text-white">
-            {editData ? "Edit Task" : "Add New Task"}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-800 rounded-full transition-colors">
-            <X className="w-6 h-6 text-gray-400 hover:text-white" />
-          </button>
-        </div>
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-2">
-              Task Title
-            </label>
-            <input
-              type="text"
-              placeholder="Enter task title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-900 rounded-xl border border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-[#A594F9] focus:border-transparent transition-all"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-2">
-              Task Description
-            </label>
-            <textarea
-              placeholder="Enter task description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-900 rounded-xl border border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-[#A594F9] focus:border-transparent transition-all min-h-[120px]"
-            />
-          </div>
-        </div>
-        <div className="flex gap-4 mt-8">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-3 rounded-xl border border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white transition-all">
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="flex-1 px-4 py-3 rounded-xl bg-[#A594F9] text-white hover:bg-[#8A7AD6] transition-colors flex items-center justify-center gap-2">
-            <CheckCircle className="w-5 h-5" />
-            {editData ? "Save Changes" : "Add Task"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const Todos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"all" | "incomplete" | "complete">(
-    "all"
+  const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(
+    null
   );
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
+  const [editTags, setEditTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState("");
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const cardColors = [
-    "bg-[#FF9A8B]",
-    "bg-[#70C1E9]",
-    "bg-[#8FE3A1]",
-    "bg-[#F27B9B]",
-    "bg-[#FFB84D]",
-    "bg-[#6FE1D7]",
-  ];
-
+  // Keyboard shortcuts
   useEffect(() => {
-    const fetchTodos = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get("/api/todos");
-        setTodos(
-          Array.isArray(response.data.existingTodos)
-            ? response.data.existingTodos
-            : []
-        );
-      } catch (err) {
-        setError("Failed to fetch todos.");
-      } finally {
-        setLoading(false);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        switch (e.key) {
+          case "n":
+            e.preventDefault();
+            createNewTodo();
+            break;
+          case "f":
+            e.preventDefault();
+            document.getElementById("search-input")?.focus();
+            break;
+        }
       }
     };
 
-    fetchTodos();
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleAddOrEditTodo = async (
-    todoData: { title: string; description: string },
-    todoId?: string
-  ) => {
+  const fetchTodos = async () => {
     try {
-      if (todoId) {
-        await axios.patch(`/api/todos?id=${todoId}`, todoData);
-      } else {
-        await axios.post("/api/todos", todoData);
-      }
+      setLoading(true);
       const response = await axios.get("/api/todos");
-      setTodos(
-        Array.isArray(response.data.existingTodos)
-          ? response.data.existingTodos
-          : []
-      );
-      setEditingTodo(null);
+      const fetchedTodos = Array.isArray(response.data.existingTodos)
+        ? response.data.existingTodos
+        : [];
+      setTodos(fetchedTodos);
+
+      if (!selectedTodo && fetchedTodos.length > 0) {
+        setSelectedTodo(fetchedTodos[0]);
+        setEditTitle(fetchedTodos[0].title);
+        setEditDescription(fetchedTodos[0].description);
+        setEditTags(fetchedTodos[0].tags || []);
+      }
     } catch (err) {
-      setError(todoId ? "Failed to edit todo." : "Failed to add todo.");
+      setError("Failed to fetch notes.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleToggleComplete = async (id: string, completed: boolean) => {
+  useEffect(() => {
+    fetchTodos();
+    return () => {
+      if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    };
+  }, []);
+
+  const startAutoSave = useCallback(() => {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    const timer = setTimeout(saveCurrentNote, 1000);
+    setAutoSaveTimer(timer);
+  }, [autoSaveTimer]);
+
+  const saveCurrentNote = async () => {
+    if (!selectedTodo || (!editTitle.trim() && !editDescription.trim())) return;
+
     try {
-      const response = await axios.patch(`/api/todos?id=${id}`, { completed });
-      setTodos((prevTodos) =>
-        prevTodos.map((todo) =>
-          todo._id === id
-            ? { ...todo, completed: response.data.todo.completed }
-            : todo
-        )
-      );
+      if (selectedTodo._id) {
+        await axios.patch(`/api/todos?id=${selectedTodo._id}`, {
+          title: editTitle || "Untitled",
+          description: editDescription,
+          tags: editTags,
+        });
+      } else {
+        const response = await axios.post("/api/todos", {
+          title: editTitle || "Untitled",
+          description: editDescription,
+          tags: editTags,
+        });
+        setSelectedTodo(response.data.todo);
+      }
+      await fetchTodos();
     } catch (err) {
-      setError("Failed to update todo.");
+      setError("Failed to save note.");
     }
   };
 
-  const handleDeleteTodo = async (id: string) => {
+  const createNewTodo = () => {
+    const newTodo = {
+      _id: "",
+      title: "",
+      description: "",
+      completed: false,
+      tags: [],
+    };
+    setSelectedTodo(newTodo);
+    setEditTitle("");
+    setEditDescription("");
+    setEditTags([]);
+  };
+
+  const deleteTodo = async (id: string) => {
     try {
       await axios.delete(`/api/todos?id=${id}`);
-      const response = await axios.get("/api/todos");
-      setTodos(
-        Array.isArray(response.data.existingTodos)
-          ? response.data.existingTodos
-          : []
-      );
+      await fetchTodos();
+      setSelectedTodo(null);
+      setEditTitle("");
+      setEditDescription("");
+      setEditTags([]);
     } catch (err) {
-      setError("Failed to delete todo.");
+      setError("Failed to delete note.");
     }
   };
 
-  const getRandomColor = () =>
-    cardColors[Math.floor(Math.random() * cardColors.length)];
+  const handleTodoSelect = (todo: Todo) => {
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+      saveCurrentNote();
+    }
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setSelectedTodo(todo);
+      setEditTitle(todo.title);
+      setEditDescription(todo.description);
+      setEditTags(todo.tags || []);
+      setIsTransitioning(false);
+    }, 200); // delay to allow transition effect
+  };
 
-  const filteredTodos = todos.filter((todo) => {
-    if (activeTab === "complete") return todo.completed;
-    if (activeTab === "incomplete") return !todo.completed;
-    return true;
-  });
+  // Filter todos by search query
+  const filteredTodos = todos.filter(
+    (todo) =>
+      todo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      todo.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Handle tag input
+  const handleTagKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && newTag.trim()) {
+      e.preventDefault();
+      if (!editTags.includes(newTag.trim())) {
+        setEditTags([...editTags, newTag.trim()]);
+        setNewTag("");
+        startAutoSave();
+      }
+    }
+  };
+
+  // Remove tag
+  const removeTag = (tagToRemove: string) => {
+    setEditTags(editTags.filter((tag) => tag !== tagToRemove));
+    startAutoSave();
+  };
 
   if (loading)
     return (
-      <div
-        className="min-h-screen bg-black flex items-center justify-center text-white"
-        style={{
-          background: "linear-gradient(to bottom right, #000000, #1a1a1a)",
-        }}>
+      <div className="min-h-screen bg-black flex items-center justify-center text-gray-300">
         Loading...
       </div>
     );
 
   if (error)
     return (
-      <div
-        className="min-h-screen bg-black flex items-center justify-center text-red-500"
-        style={{
-          background: "linear-gradient(to bottom right, #000000, #1a1a1a)",
-        }}>
+      <div className="min-h-screen bg-black flex items-center justify-center text-red-500">
         {error}
       </div>
     );
 
   return (
-    <div
-      className="min-h-screen bg-black"
-      style={{
-        background: "linear-gradient(to bottom right, #000000, #1a1a1a)",
-      }}>
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Task Overview</h1>
+    <div className="flex h-screen bg-black">
+      <div className="w-72 border-r border-gray-800 flex flex-col">
+        <div className="p-4 border-b border-gray-800">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-gray-300 font-medium">Notes</h1>
+            <button
+              onClick={createNewTodo}
+              className="text-gray-400 hover:text-[#A594F9] transition-colors p-2"
+              title="New Note (⌘N)">
+              <Plus className="w-5 h-5" />
+            </button>
           </div>
-          <button
-            onClick={() => {
-              setEditingTodo(null);
-              setIsModalOpen(true);
-            }}
-            className="px-6 py-3 bg-[#A594F9] text-white rounded-xl hover:bg-[#8A7AD6] transition-colors flex items-center gap-2 shadow-lg">
-            <Plus className="w-5 h-5" />
-            <span className="hidden sm:inline">Add Task</span>
-          </button>
+          <div className="flex items-center bg-gray-900 rounded-lg px-3 py-2">
+            <Search className="w-4 h-4 text-gray-500 mr-2" />
+            <input
+              id="search-input"
+              type="text"
+              placeholder="Search notes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent text-gray-300 text-sm w-full focus:outline-none"
+            />
+          </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-8 overflow-x-auto">
-          {(["all", "incomplete", "complete"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2 rounded-xl text-sm font-medium transition-all ${
-                activeTab === tab
-                  ? "bg-[#A594F9] text-white shadow-lg"
-                  : "bg-gray-900 text-gray-300 hover:bg-gray-800 border border-gray-700"
+        <div className="flex-1 overflow-y-auto">
+          {filteredTodos.map((todo) => (
+            <div
+              key={todo._id}
+              onClick={() => handleTodoSelect(todo)}
+              className={`p-4 cursor-pointer border-b border-gray-800 ${
+                selectedTodo?._id === todo._id
+                  ? "bg-gray-900"
+                  : "hover:bg-gray-900"
               }`}>
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
-        {/* Todo List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredTodos.map((todo) => {
-            const cardColor = getRandomColor();
-            return (
-              <div
-                key={todo._id}
-                className={`${cardColor} rounded-2xl p-6 transition-all shadow-lg hover:shadow-xl`}>
-                <h3
-                  className={`text-xl font-medium mb-3 ${
-                    todo.completed
-                      ? "text-gray-600 line-through"
-                      : "text-gray-800"
-                  }`}>
-                  {todo.title}
-                </h3>
-                {todo.description && (
-                  <p
-                    className={`mb-6 ${
-                      todo.completed
-                        ? "text-gray-500 line-through"
-                        : "text-gray-600"
-                    }`}>
-                    {todo.description}
-                  </p>
-                )}
-                <div className="flex justify-end gap-2">
-                  <button
-                    onClick={() => {
-                      setEditingTodo(todo);
-                      setIsModalOpen(true);
-                    }}
-                    className="p-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center justify-center shadow-md">
-                    <Edit className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() =>
-                      handleToggleComplete(todo._id, !todo.completed)
-                    }
-                    className={`p-3 rounded-full transition-colors flex items-center justify-center shadow-md ${
-                      todo.completed
-                        ? "bg-green-600 text-white hover:bg-green-700"
-                        : "bg-gray-500 text-black hover:bg-gray-600"
-                    }`}>
-                    <CheckCircle className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteTodo(todo._id)}
-                    className="p-3 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors flex items-center justify-center shadow-md">
-                    <Trash className="w-5 h-5" />
-                  </button>
+              <h3 className="text-gray-300 font-medium truncate">
+                {todo.title || "Untitled"}
+              </h3>
+              {todo.tags && todo.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {todo.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-block px-2 py-0.5 bg-[#A594F9] bg-opacity-20 text-[#A594F9] text-xs rounded-full">
+                      {tag}
+                    </span>
+                  ))}
                 </div>
-              </div>
-            );
-          })}
+              )}
+              <p className="text-gray-500 text-sm truncate mt-1">
+                {todo.description.slice(0, 100)}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
 
-      <TodoModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingTodo(null);
-        }}
-        onSubmit={handleAddOrEditTodo}
-        editData={editingTodo}
-      />
+      <div className="flex-1 flex flex-col">
+        {selectedTodo ? (
+          <div
+            className={`flex-1 overflow-y-auto p-6 transition-opacity duration-300 ${
+              isTransitioning ? "opacity-0" : "opacity-100"
+            }`}>
+            <div className="border-b border-gray-800 pb-4">
+              <div className="flex justify-between items-center mb-4">
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => {
+                    setEditTitle(e.target.value);
+                    startAutoSave();
+                  }}
+                  className="bg-transparent text-white text-xl font-medium focus:outline-none flex-1"
+                  placeholder="Note title"
+                />
+                {selectedTodo._id && (
+                  <button
+                    onClick={() => deleteTodo(selectedTodo._id)}
+                    className="text-gray-400 hover:text-red-500 transition-colors p-2"
+                    title="Delete">
+                    <Trash className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Tag className="w-4 h-4 text-[#A594F9]" />
+                <div className="flex gap-2 items-center flex-wrap">
+                  {editTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="bg-gray-900 text-sm px-2 py-1 rounded-full flex items-center gap-1">
+                      <span className="text-gray-300">{tag}</span>
+                      <button
+                        onClick={() => removeTag(tag)}
+                        className="text-gray-500 hover:text-red-500">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                  <input
+                    type="text"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyDown={handleTagKeyDown}
+                    placeholder="Add tag"
+                    className="bg-transparent text-white text-sm focus:outline-none w-20"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="prose prose-invert max-w-none">
+              <textarea
+                value={editDescription}
+                onChange={(e) => {
+                  setEditDescription(e.target.value);
+                  startAutoSave();
+                }}
+                className="w-full h-40 bg-transparent text-gray-300 resize-none focus:outline-none font-mono"
+                placeholder="Start writing here... (Supports Markdown)"
+              />
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {editDescription || "No content"}
+              </ReactMarkdown>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-gray-500">
+            Select a note or create a new one
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
 export default Todos;
+
+// "use client";
+
+// import React, { useState, useEffect, useCallback } from "react";
+// import { Plus, Trash, Search, Tag, X } from "lucide-react";
+// import axios from "axios";
+// import ReactMarkdown from "react-markdown";
+// import remarkGfm from "remark-gfm";
+// import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+// import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+
+// interface Todo {
+//   _id: string;
+//   title: string;
+//   description: string;
+//   completed: boolean;
+//   tags?: string[];
+// }
+
+// const CheckboxComponent = ({ checked }: { checked: boolean }) => (
+//   <input
+//     type="checkbox"
+//     checked={checked}
+//     readOnly
+//     className="mr-2 h-4 w-4 rounded border-gray-600 bg-gray-800 checked:bg-[#A594F9] checked:border-[#A594F9] focus:ring-[#A594F9] focus:ring-offset-gray-900"
+//   />
+// );
+
+// const Todos = () => {
+//   const [todos, setTodos] = useState<Todo[]>([]);
+//   const [loading, setLoading] = useState<boolean>(true);
+//   const [error, setError] = useState<string | null>(null);
+//   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
+//   const [editTitle, setEditTitle] = useState("");
+//   const [editDescription, setEditDescription] = useState("");
+//   const [searchQuery, setSearchQuery] = useState("");
+//   const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(
+//     null
+//   );
+//   const [editTags, setEditTags] = useState<string[]>([]);
+//   const [newTag, setNewTag] = useState("");
+
+//   // Keyboard shortcuts
+//   useEffect(() => {
+//     const handleKeyDown = (e: KeyboardEvent) => {
+//       if (e.metaKey || e.ctrlKey) {
+//         switch (e.key) {
+//           case "n":
+//             e.preventDefault();
+//             createNewTodo();
+//             break;
+//           case "f":
+//             e.preventDefault();
+//             document.getElementById("search-input")?.focus();
+//             break;
+//         }
+//       }
+//     };
+
+//     window.addEventListener("keydown", handleKeyDown);
+//     return () => window.removeEventListener("keydown", handleKeyDown);
+//   }, []);
+
+//   const fetchTodos = async () => {
+//     try {
+//       setLoading(true);
+//       const response = await axios.get("/api/todos");
+//       const fetchedTodos = Array.isArray(response.data.existingTodos)
+//         ? response.data.existingTodos
+//         : [];
+//       setTodos(fetchedTodos);
+
+//       if (!selectedTodo && fetchedTodos.length > 0) {
+//         setSelectedTodo(fetchedTodos[0]);
+//         setEditTitle(fetchedTodos[0].title);
+//         setEditDescription(fetchedTodos[0].description);
+//         if (fetchedTodos[0].tags) setEditTags(fetchedTodos[0].tags);
+//       }
+//     } catch (err) {
+//       setError("Failed to fetch notes.");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchTodos();
+//     return () => {
+//       if (autoSaveTimer) clearTimeout(autoSaveTimer);
+//     };
+//   }, []);
+
+//   const startAutoSave = useCallback(() => {
+//     if (autoSaveTimer) clearTimeout(autoSaveTimer);
+//     const timer = setTimeout(saveCurrentNote, 1000);
+//     setAutoSaveTimer(timer);
+//   }, [autoSaveTimer]);
+
+//   const saveCurrentNote = async () => {
+//     if (!selectedTodo || (!editTitle.trim() && !editDescription.trim())) return;
+
+//     try {
+//       if (selectedTodo._id) {
+//         await axios.patch(`/api/todos?id=${selectedTodo._id}`, {
+//           title: editTitle || "Untitled",
+//           description: editDescription,
+//           tags: editTags,
+//         });
+//       } else {
+//         const response = await axios.post("/api/todos", {
+//           title: editTitle || "Untitled",
+//           description: editDescription,
+//           tags: editTags,
+//         });
+//         setSelectedTodo(response.data.todo);
+//       }
+//       await fetchTodos();
+//     } catch (err) {
+//       setError("Failed to save note.");
+//     }
+//   };
+
+//   const createNewTodo = () => {
+//     const newTodo = {
+//       _id: "",
+//       title: "",
+//       description: "",
+//       completed: false,
+//       tags: [],
+//     };
+//     setSelectedTodo(newTodo);
+//     setEditTitle("");
+//     setEditDescription("");
+//     setEditTags([]);
+//   };
+
+//   const deleteTodo = async (id: string) => {
+//     try {
+//       await axios.delete(`/api/todos?id=${id}`);
+//       await fetchTodos();
+//       setSelectedTodo(null);
+//       setEditTitle("");
+//       setEditDescription("");
+//       setEditTags([]);
+//     } catch (err) {
+//       setError("Failed to delete note.");
+//     }
+//   };
+
+//   const handleTodoSelect = (todo: Todo) => {
+//     if (autoSaveTimer) {
+//       clearTimeout(autoSaveTimer);
+//       saveCurrentNote();
+//     }
+//     setSelectedTodo(todo);
+//     setEditTitle(todo.title);
+//     setEditDescription(todo.description);
+//     setEditTags(todo.tags || []);
+//   };
+
+//   // Custom markdown components with improved checkbox handling
+//   const MarkdownComponents = {
+//     p: ({ children }: any) => {
+//       if (typeof children === "string") {
+//         const checkboxRegex = /^\[([xX\s])\]\s*(.+)$/;
+//         const match = children.match(checkboxRegex);
+//         if (match) {
+//           const checked = match[1].toLowerCase() === "x";
+//           return (
+//             <div className="flex items-center py-1">
+//               <CheckboxComponent checked={checked} />
+//               <span className={checked ? "text-gray-500 line-through" : ""}>
+//                 {match[2]}
+//               </span>
+//             </div>
+//           );
+//         }
+//       }
+//       return <p>{children}</p>;
+//     },
+//     code({ node, inline, className, children, ...props }: any) {
+//       const match = /language-(\w+)/.exec(className || "");
+//       return !inline && match ? (
+//         <SyntaxHighlighter
+//           style={oneDark}
+//           language={match[1]}
+//           PreTag="div"
+//           className="rounded-md"
+//           {...props}>
+//           {String(children).replace(/\n$/, "")}
+//         </SyntaxHighlighter>
+//       ) : (
+//         <code
+//           className="bg-gray-800 px-1.5 py-0.5 rounded text-sm"
+//           {...props}>
+//           {children}
+//         </code>
+//       );
+//     },
+//   };
+
+//   // Filter todos by search query
+//   const filteredTodos = todos.filter(
+//     (todo) =>
+//       todo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+//       todo.description.toLowerCase().includes(searchQuery.toLowerCase())
+//   );
+
+//   // Handle tag input
+//   const handleTagKeyDown = (e: React.KeyboardEvent) => {
+//     if (e.key === "Enter" && newTag.trim()) {
+//       e.preventDefault();
+//       if (!editTags.includes(newTag.trim())) {
+//         setEditTags([...editTags, newTag.trim()]);
+//         setNewTag("");
+//         startAutoSave();
+//       }
+//     }
+//   };
+
+//   // Remove tag
+//   const removeTag = (tagToRemove: string) => {
+//     setEditTags(editTags.filter((tag) => tag !== tagToRemove));
+//     startAutoSave();
+//   };
+
+//   if (loading)
+//     return (
+//       <div className="min-h-screen bg-black flex items-center justify-center text-gray-300">
+//         Loading...
+//       </div>
+//     );
+
+//   if (error)
+//     return (
+//       <div className="min-h-screen bg-black flex items-center justify-center text-red-500">
+//         {error}
+//       </div>
+//     );
+
+//   return (
+//     <div className="flex h-screen bg-black">
+//       {/* Sidebar */}
+//       <div className="w-72 border-r border-gray-800 flex flex-col">
+//         <div className="p-4 border-b border-gray-800">
+//           <div className="flex justify-between items-center mb-4">
+//             <h1 className="text-gray-300 font-medium">Notes</h1>
+//             <button
+//               onClick={createNewTodo}
+//               className="p-2 text-gray-400 hover:text-[#A594F9] transition-colors"
+//               title="New Note (⌘N)">
+//               <Plus className="w-5 h-5" />
+//             </button>
+//           </div>
+//           <div className="flex items-center bg-gray-900 rounded-lg px-3 py-2">
+//             <Search className="w-4 h-4 text-gray-500 mr-2" />
+//             <input
+//               id="search-input"
+//               type="text"
+//               placeholder="Search notes..."
+//               value={searchQuery}
+//               onChange={(e) => setSearchQuery(e.target.value)}
+//               className="bg-transparent text-gray-300 text-sm w-full focus:outline-none"
+//             />
+//           </div>
+//         </div>
+
+//         {/* Notes list */}
+//         <div className="flex-1 overflow-y-auto">
+//           {filteredTodos.map((todo) => (
+//             <div
+//               key={todo._id}
+//               onClick={() => handleTodoSelect(todo)}
+//               className={`p-4 cursor-pointer border-b border-gray-800 ${
+//                 selectedTodo?._id === todo._id
+//                   ? "bg-gray-900"
+//                   : "hover:bg-gray-900"
+//               }`}>
+//               <h3 className="text-gray-300 font-medium truncate">
+//                 {todo.title || "Untitled"}
+//               </h3>
+//               {todo.tags && todo.tags.length > 0 && (
+//                 <div className="flex flex-wrap gap-2 mt-1">
+//                   {todo.tags.map((tag) => (
+//                     <span
+//                       key={tag}
+//                       className="inline-block px-2 py-0.5 bg-[#A594F9] bg-opacity-20 text-[#A594F9] text-xs rounded-full">
+//                       {tag}
+//                     </span>
+//                   ))}
+//                 </div>
+//               )}
+//               <p className="text-gray-500 text-sm truncate mt-1">
+//                 {todo.description.slice(0, 100)}
+//               </p>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+
+//       {/* Main Content */}
+//       <div className="flex-1 flex flex-col">
+//         {selectedTodo ? (
+//           <>
+//             <div className="p-4 border-b border-gray-800">
+//               {/* Title */}
+//               <div className="flex justify-between items-center mb-4">
+//                 <input
+//                   type="text"
+//                   value={editTitle}
+//                   onChange={(e) => {
+//                     setEditTitle(e.target.value);
+//                     startAutoSave();
+//                   }}
+//                   className="bg-transparent text-white text-xl font-medium focus:outline-none flex-1"
+//                   placeholder="Note title"
+//                 />
+//                 {selectedTodo._id && (
+//                   <button
+//                     onClick={() => deleteTodo(selectedTodo._id)}
+//                     className="text-gray-400 hover:text-red-500 transition-colors p-2"
+//                     title="Delete">
+//                     <Trash className="w-5 h-5" />
+//                   </button>
+//                 )}
+//               </div>
+
+//               {/* Tags */}
+//               <div className="flex items-center gap-2">
+//                 <Tag className="w-4 h-4 text-[#A594F9]" />
+//                 <div className="flex gap-2 items-center flex-wrap">
+//                   {editTags.map((tag) => (
+//                     <span
+//                       key={tag}
+//                       className="bg-gray-900 text-sm px-2 py-1 rounded-full flex items-center gap-1">
+//                       <span className="text-gray-300">{tag}</span>
+//                       <button
+//                         onClick={() => removeTag(tag)}
+//                         className="text-gray-500 hover:text-red-500">
+//                         <X className="w-3 h-3" />
+//                       </button>
+//                     </span>
+//                   ))}
+//                   <input
+//                     type="text"
+//                     value={newTag}
+//                     onChange={(e) => setNewTag(e.target.value)}
+//                     onKeyDown={handleTagKeyDown}
+//                     placeholder="Add tag"
+//                     className="bg-transparent text-white text-sm focus:outline-none w-20"
+//                   />
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* Note Content */}
+//             <div className="flex-1 overflow-y-auto p-6">
+//               <div className="prose prose-invert prose-pre:bg-gray-900 max-w-none">
+//                 <textarea
+//                   value={editDescription}
+//                   onChange={(e) => {
+//                     setEditDescription(e.target.value);
+//                     startAutoSave();
+//                   }}
+//                   className="w-full h-40 bg-transparent text-gray-300 resize-none focus:outline-none font-mono"
+//                   placeholder="Start writing here... (Supports Markdown)"
+//                 />
+//                 {/* Render Markdown Preview */}
+//                 <ReactMarkdown
+//                   remarkPlugins={[remarkGfm]}
+//                   components={MarkdownComponents}>
+//                   {editDescription || "No content"}
+//                 </ReactMarkdown>
+//               </div>
+//             </div>
+//           </>
+//         ) : (
+//           <div className="flex-1 flex items-center justify-center text-gray-500">
+//             Select a note or create a new one
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Todos;
