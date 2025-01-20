@@ -3,62 +3,46 @@ import dbConnect from "@/app/lib/dbConnect";
 import Todo from "@/app/(models)/todos";
 
 export async function GET() {
-    try {
-        await dbConnect();
-
-        const existingTodos = await Todo.find();
-
-        return NextResponse.json({ existingTodos });
-    } catch (error) {
-        console.error("Error fetching todos:", error);
-
-        return NextResponse.json(
-            { error: "Failed to fetch todos" },
-            { status: 500 }
-        );
-    }
-}
-
-export async function POST(request : any) {
-    const {title, description} = await request.json()
-    try {
-        await dbConnect();
-
-        await Todo.create({title, description})
-
-        return NextResponse.json({ message: "Todo adeed"}, {status : 201});
-    } catch (error) {
-        console.error("Error fetching todos:", error);
-
-        return NextResponse.json(
-            { error: "Failed to add todos" },
-            { status: 500 }
-        );
-    }
-}
-
-export async function DELETE(request : any) {
-    const id = request.nextUrl.searchParams.get('id')
-    try {
-        await dbConnect();
-
-        await Todo.findByIdAndDelete(id)
-
-        return NextResponse.json({ message: "Todo deleted"}, {status : 201});
-    } catch (error) {
-        console.error("Error fetching todos:", error);
-
-        return NextResponse.json(
-            { error: "Failed to delete todos" },
-            { status: 500 }
-        );
-    }
-}
-
-export async function PATCH(request: any) {
   try {
-    const id = request.nextUrl.searchParams.get("id");
+    await dbConnect();
+    const existingTodos = await Todo.find().sort({ createdAt: -1 });
+    return NextResponse.json({ existingTodos });
+  } catch (error) {
+    console.error("Error fetching todos:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch todos" },
+      { status: 500 }
+    );
+  }
+}
 
+export async function POST(request: any) {
+  try {
+    const { title, description, tags } = await request.json();
+    await dbConnect();
+    
+    const todo = await Todo.create({
+      title,
+      description,
+      tags: tags || []
+    });
+
+    return NextResponse.json(
+      { message: "Todo added", todo },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Error creating todo:", error);
+    return NextResponse.json(
+      { error: "Failed to add todo" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: any) {
+  try {
+    const id = request.nextUrl.searchParams.get('id');
     if (!id) {
       return NextResponse.json(
         { error: "Invalid ID" },
@@ -66,32 +50,55 @@ export async function PATCH(request: any) {
       );
     }
 
-    const { title, description, completed } = await request.json();
-
     await dbConnect();
+    const deletedTodo = await Todo.findByIdAndDelete(id);
 
-    let updatedTodo;
-
-    if (title !== undefined || description !== undefined) {
-      // Edit mode: Update title and/or description
-      updatedTodo = await Todo.findByIdAndUpdate(
-        id,
-        { title, description },
-        { new: true }
-      );
-    } else if (typeof completed === "boolean") {
-      // Toggle completed mode: Update completed status
-      updatedTodo = await Todo.findByIdAndUpdate(
-        id,
-        { completed },
-        { new: true }
-      );
-    } else {
+    if (!deletedTodo) {
       return NextResponse.json(
-        { error: "Invalid update data" },
+        { error: "Todo not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { message: "Todo deleted" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting todo:", error);
+    return NextResponse.json(
+      { error: "Failed to delete todo" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(request: any) {
+  try {
+    const id = request.nextUrl.searchParams.get("id");
+    if (!id) {
+      return NextResponse.json(
+        { error: "Invalid ID" },
         { status: 400 }
       );
     }
+
+    const { title, description, tags, completed } = await request.json();
+    await dbConnect();
+
+    const updateData: any = {};
+    
+    // Only include fields that are provided in the request
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (tags !== undefined) updateData.tags = tags;
+    if (completed !== undefined) updateData.completed = completed;
+
+    const updatedTodo = await Todo.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    );
 
     if (!updatedTodo) {
       return NextResponse.json(
@@ -106,7 +113,6 @@ export async function PATCH(request: any) {
     );
   } catch (error) {
     console.error("Error updating todo:", error);
-
     return NextResponse.json(
       { error: "Failed to update todo" },
       { status: 500 }
