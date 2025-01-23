@@ -10,7 +10,6 @@ export async function POST(req: Request) {
 
     const { email, password } = await req.json();
 
-    // Find user
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return NextResponse.json(
@@ -19,7 +18,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Check password
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       return NextResponse.json(
@@ -28,7 +26,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate token
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET || 'default-secret',
