@@ -44,15 +44,25 @@ const AuthPage = () => {
         }),
       });
 
-      console.log("response", response);
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.error || "Authentication failed");
       }
 
-      localStorage.setItem("token", data.token);
+      // If registration is successful, switch to login mode
+      if (!isLogin) {
+        setIsLogin(true);
+        setFormData({
+          email: "",
+          password: "",
+          confirmPassword: "",
+        });
+        return;
+      }
 
+      localStorage.setItem("token", data.token);
+      document.cookie = `auth-token=${data.token}; path=/; Max-Age=86400; Secure; HttpOnly; SameSite=Strict`;
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
