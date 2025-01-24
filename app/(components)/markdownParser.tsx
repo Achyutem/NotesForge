@@ -11,7 +11,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
   className = "",
 }) => {
   const parsedContent = React.useMemo(() => {
-    const parsed = parseMarkdown(content || "No content");
+    const parsed = parseMarkdown(content || "write down the description");
     return sanitizeHtml(parsed);
   }, [content]);
 
