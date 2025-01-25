@@ -186,17 +186,6 @@ const Todos = () => {
     setEditTags(todo.tags || []);
   };
 
-  const handleTagKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && newTag.trim()) {
-      e.preventDefault();
-      if (!editTags.includes(newTag.trim())) {
-        setEditTags([...editTags, newTag.trim()]);
-        setNewTag("");
-        startAutoSave();
-      }
-    }
-  };
-
   const filteredTodos = todos.filter(
     (todo) =>
       todo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
