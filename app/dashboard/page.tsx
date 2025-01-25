@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -25,21 +24,22 @@ const Todos = () => {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey) {
-        switch (e.key) {
-          case "n":
-            e.preventDefault();
-            createNewTodo();
-            break;
-          case "f":
-            e.preventDefault();
-            document.getElementById("search-input")?.focus();
-            break;
-          case "s":
-            e.preventDefault();
-            saveCurrentNote();
-            break;
-        }
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        e.shiftKey &&
+        e.key.toLowerCase() === "n"
+      ) {
+        e.preventDefault();
+        createNewTodo();
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        const searchInput = document.getElementById(
+          "search-input"
+        ) as HTMLInputElement;
+        searchInput?.focus();
+        searchInput?.select();
       }
     };
 
@@ -67,7 +67,7 @@ const Todos = () => {
       } else {
         setError("Failed to fetch notes.");
       }
-    } catch (_err) {
+    } catch (err) {
       setError("Failed to fetch notes.");
     } finally {
       setLoading(false);
@@ -87,7 +87,6 @@ const Todos = () => {
     if (autoSaveTimer) clearTimeout(autoSaveTimer);
     const timer = setTimeout(saveCurrentNote, 1000);
     setAutoSaveTimer(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoSaveTimer, isSaving]);
 
   const saveCurrentNote = async () => {
@@ -126,10 +125,8 @@ const Todos = () => {
           setSelectedTodo(response.todo);
         }
         await fetchTodos();
-      } else {
-        setError("Failed to save note.");
       }
-    } catch (_err) {
+    } catch (err) {
       setError("Failed to save note.");
       if (autoSaveTimer) {
         clearTimeout(autoSaveTimer);
@@ -152,6 +149,13 @@ const Todos = () => {
     setEditTitle("");
     setEditDescription("");
     setEditTags([]);
+
+    setTimeout(() => {
+      const titleInput = document.getElementById(
+        "todo-title-input"
+      ) as HTMLInputElement;
+      titleInput?.focus();
+    }, 0);
   };
 
   const deleteTodo = async (id: string) => {
@@ -166,7 +170,7 @@ const Todos = () => {
       } else {
         setError("Failed to delete note.");
       }
-    } catch (_err) {
+    } catch (err) {
       setError("Failed to delete note.");
     }
   };
@@ -182,16 +186,16 @@ const Todos = () => {
     setEditTags(todo.tags || []);
   };
 
-  // const handleTagKeyDown = (e: React.KeyboardEvent) => {
-  //   if (e.key === "Enter" && newTag.trim()) {
-  //     e.preventDefault();
-  //     if (!editTags.includes(newTag.trim())) {
-  //       setEditTags([...editTags, newTag.trim()]);
-  //       setNewTag("");
-  //       startAutoSave();
-  //     }
-  //   }
-  // };
+  const handleTagKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && newTag.trim()) {
+      e.preventDefault();
+      if (!editTags.includes(newTag.trim())) {
+        setEditTags([...editTags, newTag.trim()]);
+        setNewTag("");
+        startAutoSave();
+      }
+    }
+  };
 
   const filteredTodos = todos.filter(
     (todo) =>
