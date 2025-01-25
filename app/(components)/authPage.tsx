@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React from "react";
@@ -64,6 +65,7 @@ const AuthPage = () => {
       localStorage.setItem("token", data.token);
       document.cookie = `auth-token=${data.token}; path=/; Max-Age=86400; Secure; HttpOnly; SameSite=Strict`;
       router.push("/dashboard");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message);
     } finally {

@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Search, Tag } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Todo } from "../utils/types";
 
 interface TodoSidebarProps {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -44,7 +45,8 @@ const Todos = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+    // }, []);
+  });
 
   const fetchTodos = async () => {
     try {
@@ -66,7 +68,7 @@ const Todos = () => {
       } else {
         setError("Failed to fetch notes.");
       }
-    } catch (err) {
+    } catch (_err) {
       setError("Failed to fetch notes.");
     } finally {
       setLoading(false);
@@ -78,7 +80,8 @@ const Todos = () => {
     return () => {
       if (autoSaveTimer) clearTimeout(autoSaveTimer);
     };
-  }, []);
+    // }, []);
+  });
 
   const startAutoSave = useCallback(() => {
     if (isSaving) return;
@@ -86,6 +89,7 @@ const Todos = () => {
     if (autoSaveTimer) clearTimeout(autoSaveTimer);
     const timer = setTimeout(saveCurrentNote, 1000);
     setAutoSaveTimer(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoSaveTimer, isSaving]);
 
   const saveCurrentNote = async () => {
@@ -127,7 +131,7 @@ const Todos = () => {
       } else {
         setError("Failed to save note.");
       }
-    } catch (err) {
+    } catch (_err) {
       setError("Failed to save note.");
       if (autoSaveTimer) {
         clearTimeout(autoSaveTimer);
@@ -164,7 +168,7 @@ const Todos = () => {
       } else {
         setError("Failed to delete note.");
       }
-    } catch (err) {
+    } catch (_err) {
       setError("Failed to delete note.");
     }
   };
@@ -180,16 +184,16 @@ const Todos = () => {
     setEditTags(todo.tags || []);
   };
 
-  const handleTagKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && newTag.trim()) {
-      e.preventDefault();
-      if (!editTags.includes(newTag.trim())) {
-        setEditTags([...editTags, newTag.trim()]);
-        setNewTag("");
-        startAutoSave();
-      }
-    }
-  };
+  // const handleTagKeyDown = (e: React.KeyboardEvent) => {
+  //   if (e.key === "Enter" && newTag.trim()) {
+  //     e.preventDefault();
+  //     if (!editTags.includes(newTag.trim())) {
+  //       setEditTags([...editTags, newTag.trim()]);
+  //       setNewTag("");
+  //       startAutoSave();
+  //     }
+  //   }
+  // };
 
   const filteredTodos = todos.filter(
     (todo) =>

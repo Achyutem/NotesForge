@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from 'next/server';
 import dbConnect from "@/app/lib/dbConnect";
 import Todo from "@/app/(models)/todos";

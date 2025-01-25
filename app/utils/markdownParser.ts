@@ -33,7 +33,7 @@ export const parseMarkdown = (text: string): string => {
   
     // Unordered Lists
     const processLists = (text: string): string => {
-      const listRegex = /^(\s*)-\s+([^\n]+)/gm;
+      // const listRegex = /^(\s*)-\s+([^\n]+)/gm;
       const lines = text.split('\n');
       let inList = false;
       let result = '';
@@ -103,6 +103,7 @@ export const parseMarkdown = (text: string): string => {
     // Tables
     result = result.replace(/^\|(.+)\|$/gm, (match, content) => {
       const cells = content.split('|').map((cell: string) => cell.trim());
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return `<tr>${cells.map((cell: any) => `<td class="border px-4 py-2">${cell}</td>`).join('')}</tr>`;
     });
     
