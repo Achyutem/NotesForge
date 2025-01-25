@@ -26,17 +26,17 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
           <h1 className="text-gray-800 font-bold">Notes</h1>
           <button
             onClick={onCreateTodo}
-            className="text-gray-500 hover:text-blue-500 transition-colors p-2"
-            title="New Note (⌘N)">
+            className="text-[#652ddf] hover:text-[#bd38cc] transition-colors p-2"
+            title="New Note (ctrl+shift+n)">
             <Plus className="w-5 h-5" />
           </button>
         </div>
         <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2">
-          <Search className="w-4 h-4 text-gray-500 mr-2" />
+          <Search className="w-4 h-4 text-[#652ddf] mr-2" />
           <input
             id="search-input"
             type="text"
-            placeholder="Search notes..."
+            placeholder="Search notes... (ctrl + f)"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="bg-transparent text-gray-800 text-sm w-full focus:outline-none"
@@ -62,7 +62,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
                 {todo.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="inline-block px-2 py-0.5 bg-blue-500 bg-opacity-20 text-blue-500 text-xs rounded-full">
+                    className="inline-block px-2 py-0.5 bg-[#652ddf] bg-opacity-20 text-[#652ddf] text-xs rounded-full">
                     {tag}
                   </span>
                 ))}

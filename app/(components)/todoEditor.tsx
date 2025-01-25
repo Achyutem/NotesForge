@@ -43,6 +43,7 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
         <div className="border-b border-gray-300 pb-4">
           <div className="flex justify-between items-center mb-4">
             <input
+              id="todo-title-input"
               type="text"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
@@ -52,7 +53,7 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
             {todo._id && (
               <button
                 onClick={onDeleteTodo}
-                className="text-gray-500 hover:text-red-500 transition-colors p-2"
+                className="text-[#652ddf] hover:text-red-500 transition-colors p-2"
                 title="Delete">
                 <Trash className="w-5 h-5" />
               </button>
@@ -60,7 +61,7 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <Tag className="w-4 h-4 text-blue-500" />
+            <Tag className="w-4 h-4 text-[#652ddf]" />
             <div className="flex gap-2 items-center flex-wrap">
               {tags.map((tag) => (
                 <span
