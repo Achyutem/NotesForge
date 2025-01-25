@@ -45,8 +45,7 @@ const Todos = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-    // }, []);
-  });
+  }, []);
 
   const fetchTodos = async () => {
     try {
@@ -80,8 +79,7 @@ const Todos = () => {
     return () => {
       if (autoSaveTimer) clearTimeout(autoSaveTimer);
     };
-    // }, []);
-  });
+  }, []);
 
   const startAutoSave = useCallback(() => {
     if (isSaving) return;
