@@ -1,5 +1,5 @@
-import React from "react";
-import { Plus, Search } from "lucide-react";
+import React, { useState } from "react";
+import { Plus, Search, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Todo } from "../utils/types";
 
 interface TodoSidebarProps {
@@ -19,17 +19,50 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
   onCreateTodo,
   onTodoSelect,
 }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
+  if (isCollapsed) {
+    return (
+      <div className="w-12 border-r border-gray-300 flex flex-col items-center py-4">
+        <button
+          onClick={toggleSidebar}
+          className="text-[#652ddf] hover:text-[#bd38cc] transition-colors mb-4"
+          title="Expand Sidebar">
+          <ChevronsRight className="w-6 h-6" />
+        </button>
+        <button
+          onClick={onCreateTodo}
+          className="text-[#652ddf] hover:text-[#bd38cc] transition-colors"
+          title="New Note (ctrl+shift+n)">
+          <Plus className="w-5 h-5" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="w-72 border-r border-gray-300 flex flex-col">
       <div className="p-4 border-b border-gray-300">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-gray-800 font-bold">Notes</h1>
-          <button
-            onClick={onCreateTodo}
-            className="text-[#652ddf] hover:text-[#bd38cc] transition-colors p-2"
-            title="New Note (ctrl+shift+n)">
-            <Plus className="w-5 h-5" />
-          </button>
+          <div className="flex items-center">
+            <button
+              onClick={toggleSidebar}
+              className="text-[#652ddf] hover:text-[#bd38cc] transition-colors mr-2"
+              title="Collapse Sidebar">
+              <ChevronsLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={onCreateTodo}
+              className="text-[#652ddf] hover:text-[#bd38cc] transition-colors p-2"
+              title="New Note (ctrl+shift+n)">
+              <Plus className="w-5 h-5" />
+            </button>
+          </div>
         </div>
         <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2">
           <Search className="w-4 h-4 text-[#652ddf] mr-2" />
@@ -43,7 +76,6 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
           />
         </div>
       </div>
-
       <div className="flex-1 overflow-y-auto">
         {todos.map((todo) => (
           <div
