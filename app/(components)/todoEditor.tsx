@@ -1,5 +1,5 @@
 import React from "react";
-import { Trash, Tag, X } from "lucide-react";
+import { Trash, Tag, X, Save } from "lucide-react";
 import MarkdownPreview from "../(components)/markdownParser";
 import { Todo } from "../utils/types";
 
@@ -9,12 +9,14 @@ interface TodoEditorProps {
   description: string;
   tags: string[];
   newTag: string;
+  isSaving: boolean;
   onTitleChange: (title: string) => void;
   onDescriptionChange: (description: string) => void;
   onDeleteTodo: () => void;
   onAddTag: (tag: string) => void;
   onRemoveTag: (tag: string) => void;
   onNewTagChange: (tag: string) => void;
+  onSave: () => void;
 }
 
 const TodoEditor: React.FC<TodoEditorProps> = ({
@@ -23,12 +25,14 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
   description,
   tags,
   newTag,
+  isSaving,
   onTitleChange,
   onDescriptionChange,
   onDeleteTodo,
   onAddTag,
   onRemoveTag,
   onNewTagChange,
+  onSave,
 }) => {
   const handleTagKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && newTag.trim()) {
@@ -50,16 +54,24 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
               className="bg-transparent text-black text-xl font-medium focus:outline-none flex-1"
               placeholder="Note title"
             />
-            {todo._id && (
+            <div className="flex gap-2">
               <button
-                onClick={onDeleteTodo}
-                className="text-[#652ddf] hover:text-red-500 transition-colors p-2"
-                title="Delete">
-                <Trash className="w-5 h-5" />
+                onClick={onSave}
+                disabled={isSaving}
+                className="text-[#652ddf] hover:text-green-500 transition-colors p-2 disabled:opacity-50"
+                title="Save (Ctrl/Cmd + S)">
+                <Save className="w-5 h-5" />
               </button>
-            )}
+              {todo.id && (
+                <button
+                  onClick={onDeleteTodo}
+                  className="text-[#652ddf] hover:text-red-500 transition-colors p-2"
+                  title="Delete">
+                  <Trash className="w-5 h-5" />
+                </button>
+              )}
+            </div>
           </div>
-
           <div className="flex items-center gap-2">
             <Tag className="w-4 h-4 text-[#652ddf]" />
             <div className="flex gap-2 items-center flex-wrap">
@@ -86,7 +98,6 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
             </div>
           </div>
         </div>
-
         <div className="prose max-w-none">
           <textarea
             value={description}
