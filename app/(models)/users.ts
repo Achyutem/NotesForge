@@ -1,34 +1,25 @@
-import mongoose from 'mongoose';
+import { openDb } from '../lib/sqliteConnect';
 import bcrypt from 'bcryptjs';
 
-const userSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: [true, 'Please provide an email'],
-    unique: true,
-    lowercase: true,
-  },
-  password: {
-    type: String,
-    required: [true, 'Please provide a password'],
-    minlength: [6, 'Password should be at least 6 characters'],
-  },
-}, {
-  timestamps: true
-});
+export async function createUser(email: string, password: string) {
+  const db = await openDb();
 
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    next(error);
-  }
-});
+  // Hash the password before saving
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
 
-const User = mongoose.models.User || mongoose.model('User', userSchema);
-export default User;
+  const result = await db.run(
+    'INSERT INTO users (email, password) VALUES (?, ?)',
+    [email, hashedPassword]
+  );
+  return result.lastID; // Return the new user's ID
+}
+
+export async function findUserByEmail(email: string) {
+  const db = await openDb();
+  return db.get('SELECT * FROM users WHERE email = ?', [email]);
+}
+
+export async function comparePasswords(inputPassword: string, hashedPassword: string) {
+  return await bcrypt.compare(inputPassword, hashedPassword);
+}
