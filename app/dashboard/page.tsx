@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 "use client";
-
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import TodoSidebar from "../(components)/todoSidebar";
 import TodoEditor from "../(components)/todoEditor";
@@ -19,9 +18,6 @@ const Todos = () => {
   const [editTags, setEditTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(
-    null
-  );
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -43,20 +39,25 @@ const Todos = () => {
         searchInput?.focus();
         searchInput?.select();
       }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        saveCurrentTodo();
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [selectedTodo, editTitle, editDescription, editTags]);
 
   const fetchTodos = async () => {
     try {
       setLoading(true);
       const response = await axios.get<ApiResponse>("/api/todos");
+      console.log("response", response.data);
 
-      if (response.status === 200 && response.data.existingTodos) {
-        const fetchedTodos = Array.isArray(response.data.existingTodos)
-          ? response.data.existingTodos
+      if (response.status === 200 && response.data.todos) {
+        const fetchedTodos = Array.isArray(response.data.todos)
+          ? response.data.todos
           : [];
         setTodos(fetchedTodos);
 
@@ -67,10 +68,10 @@ const Todos = () => {
           setEditTags(fetchedTodos[0].tags || []);
         }
       } else {
-        setError("Failed to fetch notes.");
+        setError("Failed to fetch todos.");
       }
     } catch (err) {
-      setError("Failed to fetch notes.");
+      setError("Failed to fetch todos.");
     } finally {
       setLoading(false);
     }
@@ -78,20 +79,9 @@ const Todos = () => {
 
   useEffect(() => {
     fetchTodos();
-    return () => {
-      if (autoSaveTimer) clearTimeout(autoSaveTimer);
-    };
   }, []);
 
-  const startAutoSave = useCallback(() => {
-    if (isSaving) return;
-
-    if (autoSaveTimer) clearTimeout(autoSaveTimer);
-    const timer = setTimeout(saveCurrentNote, 1000);
-    setAutoSaveTimer(timer);
-  }, [autoSaveTimer, isSaving]);
-
-  const saveCurrentNote = async () => {
+  const saveCurrentTodo = async () => {
     if (
       !selectedTodo ||
       (!editTitle.trim() && !editDescription.trim()) ||
@@ -103,9 +93,9 @@ const Todos = () => {
     try {
       let response: ApiResponse;
 
-      if (selectedTodo._id) {
+      if (selectedTodo.id) {
         const { data, status } = await axios.patch(
-          `/api/todos?id=${selectedTodo._id}`,
+          `/api/todos?id=${selectedTodo.id}`,
           {
             title: editTitle || "Untitled",
             description: editDescription,
@@ -123,17 +113,13 @@ const Todos = () => {
       }
 
       if (response.status === 200) {
-        if (!selectedTodo._id && response.todo) {
-          setSelectedTodo(response.todo);
+        if (!selectedTodo.id && response.todos && response.todos[0]) {
+          setSelectedTodo(response.todos[0]);
         }
         await fetchTodos();
       }
     } catch (err) {
-      setError("Failed to save note.");
-      if (autoSaveTimer) {
-        clearTimeout(autoSaveTimer);
-        setAutoSaveTimer(null);
-      }
+      setError("Failed to save todo.");
     } finally {
       setIsSaving(false);
     }
@@ -141,11 +127,13 @@ const Todos = () => {
 
   const createNewTodo = () => {
     const newTodo = {
-      _id: "",
+      id: "",
       title: "",
       description: "",
       completed: false,
       tags: [],
+      userId: 1,
+      createdAt: new Date().toISOString(),
     };
     setSelectedTodo(newTodo);
     setEditTitle("");
@@ -170,18 +158,14 @@ const Todos = () => {
         setEditDescription("");
         setEditTags([]);
       } else {
-        setError("Failed to delete note.");
+        setError("Failed to delete todo.");
       }
     } catch (err) {
-      setError("Failed to delete note.");
+      setError("Failed to delete todo.");
     }
   };
 
   const handleTodoSelect = (todo: Todo) => {
-    if (autoSaveTimer) {
-      clearTimeout(autoSaveTimer);
-      saveCurrentNote();
-    }
     setSelectedTodo(todo);
     setEditTitle(todo.title);
     setEditDescription(todo.description);
@@ -219,6 +203,14 @@ const Todos = () => {
         todos={filteredTodos}
         searchQuery={searchQuery}
         selectedTodo={selectedTodo}
+        unsavedTitle={editTitle}
+        unsavedTags={editTags}
+        hasUnsavedChanges={
+          selectedTodo &&
+          (editTitle !== selectedTodo.title ||
+            editDescription !== selectedTodo.description ||
+            JSON.stringify(editTags) !== JSON.stringify(selectedTodo.tags))
+        }
         onSearchChange={setSearchQuery}
         onCreateTodo={createNewTodo}
         onTodoSelect={handleTodoSelect}
@@ -230,31 +222,25 @@ const Todos = () => {
           description={editDescription}
           tags={editTags}
           newTag={newTag}
-          onTitleChange={(title) => {
-            setEditTitle(title);
-            startAutoSave();
-          }}
-          onDescriptionChange={(description) => {
-            setEditDescription(description);
-            startAutoSave();
-          }}
-          onDeleteTodo={() => deleteTodo(selectedTodo._id)}
+          onTitleChange={setEditTitle}
+          onDescriptionChange={setEditDescription}
+          onDeleteTodo={() => deleteTodo(selectedTodo.id)}
           onAddTag={(tag) => {
             if (!editTags.includes(tag)) {
               setEditTags([...editTags, tag]);
               setNewTag("");
-              startAutoSave();
             }
           }}
           onRemoveTag={(tag) => {
             setEditTags(editTags.filter((t) => t !== tag));
-            startAutoSave();
           }}
           onNewTagChange={setNewTag}
+          onSave={saveCurrentTodo}
+          isSaving={isSaving}
         />
       ) : (
         <div className="flex-1 flex items-center justify-center text-gray-500">
-          Select a note or create a new one
+          Select a todo or create a new one
         </div>
       )}
     </div>
