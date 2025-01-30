@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "npx tsx app/migrations/init-db.ts && next dev --turbopack",
+    "prebuild": "npx tsx app/migrations/init-db.ts",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "npx tsx app/migrations/init-db.ts && next start"
   },
   "dependencies": {
     "axios": "^1.7.9",
