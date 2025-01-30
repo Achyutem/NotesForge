@@ -112,7 +112,7 @@ const Todos = () => {
         response = { ...data, status };
       }
 
-      if (response.status === 200) {
+      if (response.status === 200 || response.status === 201) {
         if (!selectedTodo.id && response.todos && response.todos[0]) {
           setSelectedTodo(response.todos[0]);
         }
