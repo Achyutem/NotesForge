@@ -1,60 +1,74 @@
-import { NextResponse } from 'next/server';
-import { openDb } from '@/app/lib/sqliteConnect'; // Import SQLite connection
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { NextResponse } from "next/server";
+import { openDb } from "@/app/lib/sqliteConnect";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+// Allowing CORS for local development
+export async function OPTIONS() {
+  return NextResponse.json({}, { status: 200, headers: { "Access-Control-Allow-Origin": "*" } });
+}
 
 export async function POST(req: Request) {
   try {
+    if (req.method !== "POST") {
+      return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
+    }
+
     const { email, password } = await req.json();
+
+    if (!email || !password) {
+      return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+    }
 
     const db = await openDb();
 
-    // Check if the user already exists
-    const existingUser = await db.get('SELECT * FROM users WHERE email = ?', [
+    const existingUser = await db.get("SELECT * FROM users WHERE email = ?", [
       email.toLowerCase(),
     ]);
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'Email already registered' },
+        { error: "Email already registered" },
         { status: 400 }
       );
     }
 
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert the new user into the database
     const result = await db.run(
-      'INSERT INTO users (email, password) VALUES (?, ?)',
+      "INSERT INTO users (email, password) VALUES (?, ?)",
       [email.toLowerCase(), hashedPassword]
     );
 
-    // Fetch the newly created user
-    const newUser = await db.get('SELECT * FROM users WHERE id = ?', [
+    if (!result.lastID) {
+      throw new Error("Failed to insert user");
+    }
+
+    const newUser = await db.get("SELECT * FROM users WHERE id = ?", [
       result.lastID,
     ]);
 
-    // Generate a JWT token
     const token = jwt.sign(
-      { userId: newUser.id }, // Use newUser.id instead of newUser._id
-      process.env.JWT_SECRET || 'default-secret',
-      { expiresIn: '7d' }
+      { userId: newUser.id },
+      process.env.JWT_SECRET || "default-secret",
+      { expiresIn: "7d" }
     );
 
-    return NextResponse.json({
-      message: 'Registration successful',
-      token,
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-      },
-    });
-  } catch (error) {
-    console.error('Registration error:', error);
     return NextResponse.json(
-      { error: 'Registration failed' },
+      {
+        message: "Registration successful",
+        token,
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+        },
+      },
+      { status: 201, headers: { "Access-Control-Allow-Origin": "*" } }
+    );
+  } catch (error) {
+    console.error("Registration error:", error);
+    return NextResponse.json(
+      { error: "Registration failed" },
       { status: 500 }
     );
   }

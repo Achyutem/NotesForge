@@ -61,10 +61,6 @@ const AuthPage = () => {
         });
         return;
       }
-      //? storing token in localstorage
-      // localStorage.setItem("token", data.token);
-      //? storing token in cookie
-      // document.cookie = `auth-token=${data.token}; path=/; Max-Age=86400; Secure; HttpOnly; SameSite=Strict`;
       router.push("/dashboard");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
