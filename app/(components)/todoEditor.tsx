@@ -42,39 +42,42 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col">
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="border-b border-gray-300 pb-4">
-          <div className="flex justify-between items-center mb-4">
+    <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 overflow-y-auto">
+        {/* Header Section */}
+        <div className="sticky top-0 bg-white border-b border-gray-300 px-4 py-3 md:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
             <input
               id="todo-title-input"
               type="text"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
-              className="bg-transparent text-black text-xl font-medium focus:outline-none flex-1"
+              className="bg-transparent text-black text-xl font-medium focus:outline-none flex-1 min-w-[200px]"
               placeholder="Note title"
             />
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2 ml-auto">
               <button
                 onClick={onSave}
                 disabled={isSaving}
-                className="text-[#652ddf] hover:text-green-500 transition-colors p-2 disabled:opacity-50"
+                className="text-[#652ddf] hover:text-green-500 transition-colors p-1.5 disabled:opacity-50 rounded-md"
                 title="Save (Ctrl/Cmd + S)">
                 <Save className="w-5 h-5" />
               </button>
               {todo.id && (
                 <button
                   onClick={onDeleteTodo}
-                  className="text-[#652ddf] hover:text-red-500 transition-colors p-2"
+                  className="text-[#652ddf] hover:text-red-500 transition-colors p-1.5 rounded-md"
                   title="Delete">
                   <Trash className="w-5 h-5" />
                 </button>
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Tag className="w-4 h-4 text-[#652ddf]" />
-            <div className="flex gap-2 items-center flex-wrap">
+
+          {/* Tags Section */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Tag className="w-4 h-4 text-[#652ddf] flex-shrink-0" />
+            <div className="flex flex-wrap gap-2 items-center flex-1">
               {tags.map((tag) => (
                 <span
                   key={tag}
@@ -82,7 +85,7 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
                   <span className="text-gray-800">{tag}</span>
                   <button
                     onClick={() => onRemoveTag(tag)}
-                    className="text-gray-500 hover:text-red-500">
+                    className="text-gray-500 hover:text-red-500 p-0.5">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -93,19 +96,26 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
                 onChange={(e) => onNewTagChange(e.target.value)}
                 onKeyDown={handleTagKeyDown}
                 placeholder="Add tag"
-                className="bg-transparent text-black text-sm focus:outline-none w-20"
+                className="bg-transparent text-black text-sm focus:outline-none min-w-[80px] flex-1"
               />
             </div>
           </div>
         </div>
-        <div className="prose max-w-none">
-          <textarea
-            value={description}
-            onChange={(e) => onDescriptionChange(e.target.value)}
-            className="w-full h-40 bg-gray-100 text-gray-800 resize-none focus:outline-none font-mono p-2"
-            placeholder="Start writing here... (Supports Markdown)"
-          />
-          <MarkdownPreview content={description} />
+
+        {/* Content Section */}
+        <div className="p-4 md:p-6 space-y-4">
+          <div className="w-full">
+            <textarea
+              value={description}
+              onChange={(e) => onDescriptionChange(e.target.value)}
+              className="w-full h-40 bg-gray-100 text-gray-800 resize-none focus:outline-none font-mono p-3 rounded-lg"
+              placeholder="Start writing here... (Supports Markdown)"
+            />
+          </div>
+
+          <div className="prose prose-sm md:prose max-w-none">
+            <MarkdownPreview content={description} />
+          </div>
         </div>
       </div>
     </div>
