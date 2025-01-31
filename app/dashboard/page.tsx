@@ -53,7 +53,6 @@ const Todos = () => {
     try {
       setLoading(true);
       const response = await axios.get<ApiResponse>("/api/todos");
-      console.log("response", response.data);
 
       if (response.status === 200 && response.data.todos) {
         const fetchedTodos = Array.isArray(response.data.todos)
