@@ -213,6 +213,7 @@ const Todos = () => {
         onSearchChange={setSearchQuery}
         onCreateTodo={createNewTodo}
         onTodoSelect={handleTodoSelect}
+        onDeleteTodo={deleteTodo}
       />
       {selectedTodo ? (
         <TodoEditor
