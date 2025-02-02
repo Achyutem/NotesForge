@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Plus,
   Search,
@@ -43,6 +43,19 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        toggleSidebar();
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
+
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
@@ -75,7 +88,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
             <button
               onClick={toggleSidebar}
               className="text-[#652ddf] hover:text-[#bd38cc] transition-colors mr-2"
-              title="Collapse Sidebar">
+              title="Collapse Sidebar(ctrl+B)">
               <ChevronsLeft className="w-5 h-5" />
             </button>
             <button
@@ -131,7 +144,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
                   </div>
                 )}
                 <p className="text-gray-600 text-sm truncate mt-1">
-                  {todo.description.slice(0, 100)}
+                  {todo.description.slice(0, 30)}
                 </p>
               </div>
 
