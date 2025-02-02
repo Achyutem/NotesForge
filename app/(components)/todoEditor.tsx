@@ -60,14 +60,14 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
                 onClick={onSave}
                 disabled={isSaving}
                 className="text-[#652ddf] hover:text-green-500 transition-colors p-1.5 disabled:opacity-50 rounded-md"
-                title="Save (Ctrl/Cmd + S)">
+                title="Save (Ctrl + S)">
                 <Save className="w-5 h-5" />
               </button>
               {todo.id && (
                 <button
                   onClick={onDeleteTodo}
                   className="text-[#652ddf] hover:text-red-500 transition-colors p-1.5 rounded-md"
-                  title="Delete">
+                  title="Delete (Ctrl + D)">
                   <Trash className="w-5 h-5" />
                 </button>
               )}
