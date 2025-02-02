@@ -12,7 +12,7 @@ export async function createUser(email: string, password: string) {
     'INSERT INTO users (email, password) VALUES (?, ?)',
     [email, hashedPassword]
   );
-  return result.lastID; // Return the new user's ID
+  return result.lastID; 
 }
 
 export async function findUserByEmail(email: string) {

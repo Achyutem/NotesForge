@@ -12,7 +12,7 @@ export async function createTodo(
     'INSERT INTO todos (userId, title, description, tags) VALUES (?, ?, ?, ?)',
     [userId, title, description, JSON.stringify(tags || [])]
   );
-  return result.lastID; // Return the new todo's ID
+  return result.lastID;
 }
 
 export async function getTodosByUserId(userId: number) {
