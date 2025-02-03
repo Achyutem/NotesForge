@@ -102,6 +102,7 @@ const Todos = () => {
           }
         );
         response = { ...data, status };
+        console.log("update", response.todo?.updatedAt);
       } else {
         const { data, status } = await axios.post("/api/todos", {
           title: editTitle || "Untitled",
@@ -112,8 +113,9 @@ const Todos = () => {
       }
 
       if (response.status === 200 || response.status === 201) {
-        if (!selectedTodo.id && response.todos && response.todos[0]) {
-          setSelectedTodo(response.todos[0]);
+        if (!selectedTodo.id && response.todo) {
+          setSelectedTodo(response.todo);
+          console.log("updated", response.todo);
         }
         await fetchTodos();
       }
@@ -133,6 +135,7 @@ const Todos = () => {
       tags: [],
       userId: 1,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     setSelectedTodo(newTodo);
     setEditTitle("");
