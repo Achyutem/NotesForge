@@ -6,10 +6,12 @@ export interface Todo {
   tags?: string[];
   userId: number;
   createdAt: string;
+  updatedAt: string
 }
 
 export interface ApiResponse {
-  todos: Todo[];
+  todo?: Todo;
+  todos?: Todo[];
   message?: string;
   status: number;
 }
