@@ -73,10 +73,12 @@ export async function PATCH(request: Request) {
     if (!id) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
+
     const { title, description, tags, completed } = await request.json();
     const db = await openDb();
     const updateFields = [];
     const updateValues = [];
+
     if (title !== undefined) {
       updateFields.push('title = ?');
       updateValues.push(title);
@@ -93,20 +95,27 @@ export async function PATCH(request: Request) {
       updateFields.push('completed = ?');
       updateValues.push(completed ? 1 : 0);
     }
+
     if (updateFields.length === 0) {
       return NextResponse.json(
         { error: 'No fields to update' },
         { status: 400 }
       );
     }
+
+    updateFields.push('updatedAt = CURRENT_TIMESTAMP');
+
     updateValues.push(id);
     const query = `UPDATE todos SET ${updateFields.join(', ')} WHERE id = ?`;
     const result = await db.run(query, updateValues);
+
     if (result.changes === 0) {
       return NextResponse.json({ error: 'Todo not found' }, { status: 404 });
     }
+
     const updatedTodo = await db.get('SELECT * FROM todos WHERE id = ?', [id]);
     updatedTodo.tags = JSON.parse(updatedTodo.tags || '[]');
+
     return NextResponse.json(
       { message: 'Todo updated', todo: updatedTodo },
       { status: 200 }
