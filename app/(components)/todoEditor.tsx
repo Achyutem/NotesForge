@@ -1,5 +1,5 @@
 import React from "react";
-import { Trash, Tag, X, Save } from "lucide-react";
+import { Trash, Tag, X, Save, Clock } from "lucide-react";
 import MarkdownPreview from "../(components)/markdownParser";
 import { Todo } from "../utils/types";
 
@@ -41,10 +41,16 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
     }
   };
 
+  const lastUpdated = new Date(
+    todo.updatedAt || todo.createdAt
+  ).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex-1 overflow-y-auto">
-        {/* Header Section */}
         <div className="sticky top-0 bg-white border-b border-gray-300 px-4 py-3 md:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
             <input
@@ -74,8 +80,14 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
             </div>
           </div>
 
-          {/* Tags Section */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="text-gray-500 text-sm flex items-center gap-2">
+            <Clock className="w-4 h-4 text-[#652ddf]" />
+            <span>
+              Last Updated: <strong>{lastUpdated}</strong>
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 mt-2">
             <Tag className="w-4 h-4 text-[#652ddf] flex-shrink-0" />
             <div className="flex flex-wrap gap-2 items-center flex-1">
               {tags.map((tag) => (
@@ -102,7 +114,6 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
           </div>
         </div>
 
-        {/* Content Section */}
         <div className="p-4 md:p-6 space-y-4">
           <div className="w-full">
             <textarea
