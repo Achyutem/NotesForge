@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import TodoSidebar from "../(components)/todoSidebar";
-import TodoEditor from "../(components)/todoEditor";
+import Editor from "../(components)/editor";
 import { Todo, ApiResponse } from "../utils/types";
 
 const Todos = () => {
@@ -219,7 +219,7 @@ const Todos = () => {
         onDeleteTodo={deleteTodo}
       />
       {selectedTodo ? (
-        <TodoEditor
+        <Editor
           todo={selectedTodo}
           title={editTitle}
           description={editDescription}
