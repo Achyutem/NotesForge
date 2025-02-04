@@ -62,7 +62,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
 
   if (isCollapsed) {
     return (
-      <div className="w-12 border-r border-gray-300 flex flex-col items-center py-4">
+      <div className="w-12 border-r bg-background border-gray-300 flex flex-col items-center py-4">
         <button
           onClick={toggleSidebar}
           className="text-primary hover:text-[#bd38cc] transition-colors mb-4"
