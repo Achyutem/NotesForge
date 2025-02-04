@@ -65,13 +65,13 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
       <div className="w-12 border-r border-gray-300 flex flex-col items-center py-4">
         <button
           onClick={toggleSidebar}
-          className="text-[#652ddf] hover:text-[#bd38cc] transition-colors mb-4"
+          className="text-primary hover:text-[#bd38cc] transition-colors mb-4"
           title="Expand Sidebar">
           <ChevronsRight className="w-6 h-6" />
         </button>
         <button
           onClick={onCreateTodo}
-          className="text-[#652ddf] hover:text-[#bd38cc] transition-colors"
+          className="text-primary hover:text-[#bd38cc] transition-colors"
           title="New Note (ctrl+shift+n)">
           <Plus className="w-5 h-5" />
         </button>
@@ -80,34 +80,34 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
   }
 
   return (
-    <div className="w-72 border-r border-gray-300 flex flex-col">
+    <div className="w-72 bg-background border-r border-gray-300 flex flex-col">
       <div className="p-4 border-b border-gray-300">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-gray-800 font-bold">Notes</h1>
+          <h1 className="text-primary font-bold">Notes</h1>
           <div className="flex items-center">
             <button
               onClick={toggleSidebar}
-              className="text-[#652ddf] hover:text-[#bd38cc] transition-colors mr-2"
+              className="text-primary hover:text-[#bd38cc] transition-colors mr-2"
               title="Collapse Sidebar(ctrl+B)">
               <ChevronsLeft className="w-5 h-5" />
             </button>
             <button
               onClick={onCreateTodo}
-              className="text-[#652ddf] hover:text-[#bd38cc] transition-colors p-2"
+              className="text-primary hover:text-[#bd38cc] transition-colors p-2"
               title="New Note (ctrl+shift+n)">
               <Plus className="w-5 h-5" />
             </button>
           </div>
         </div>
-        <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2">
-          <Search className="w-4 h-4 text-[#652ddf] mr-2" />
+        <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2">
+          <Search className="w-4 h-4 text-primary mr-2" />
           <input
             id="search-input"
             type="text"
             placeholder="Search notes... (ctrl + f)"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="bg-transparent text-gray-800 text-sm w-full focus:outline-none"
+            className="bg-transparent text-black dark:text-white text-sm w-full focus:outline-none"
           />
         </div>
       </div>
@@ -124,12 +124,14 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
           return (
             <div
               key={todo.id}
-              className={`p-4 cursor-pointer border-b border-gray-300 flex justify-between items-center ${
-                isSelected ? "bg-gray-200" : "hover:bg-gray-200"
+              className={`p-4 cursor-pointer border-b border-gray-300 dark:border-gray-700 flex justify-between items-center ${
+                isSelected
+                  ? "bg-gray-200 dark:bg-gray-800"
+                  : "hover:bg-gray-200 dark:hover:bg-gray-800"
               }`}
               onClick={() => onTodoSelect(todo)}>
               <div className="flex-1">
-                <h3 className="text-gray-800 font-medium truncate">
+                <h3 className="text-primary dark:text-whitefont-medium truncate">
                   {displayTitle}
                 </h3>
                 {displayTags && displayTags.length > 0 && (
@@ -137,13 +139,13 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
                     {displayTags.map((tag) => (
                       <span
                         key={tag}
-                        className="inline-block px-2 py-0.5 bg-[#652ddf] bg-opacity-20 text-[#652ddf] text-xs rounded-full">
+                        className="inline-block px-2 py-0.5 bg-background bg-opacity-20 text-primary text-xs rounded-full">
                         {tag}
                       </span>
                     ))}
                   </div>
                 )}
-                <p className="text-gray-600 text-sm truncate mt-1">
+                <p className="text-black dark:text-white text-sm truncate mt-1">
                   {todo.description.slice(0, 30)}
                 </p>
               </div>
