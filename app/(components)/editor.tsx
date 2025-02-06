@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { Components } from "react-markdown";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { Trash, Tag, X, Save, Clock, Eye, Edit3 } from "lucide-react";
@@ -51,7 +53,7 @@ const Editor: React.FC<EditorProps> = ({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleTagKeyDown = (e: React.KeyboardEvent) => {
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && newTag.trim()) {
       e.preventDefault();
       onAddTag(newTag.trim());
@@ -64,6 +66,39 @@ const Editor: React.FC<EditorProps> = ({
     hour: "2-digit",
     minute: "2-digit",
   });
+
+  const CodeBlock: Components = {
+    code({
+      node,
+      inline,
+      className,
+      children,
+      ...props
+    }: {
+      node?: any;
+      inline?: boolean;
+      className?: string;
+      children?: React.ReactNode;
+      [key: string]: any;
+    }) {
+      const match = /language-(\w+)/.exec(className || "");
+      return !inline && match ? (
+        <SyntaxHighlighter
+          style={oneDark}
+          language={match[1]}
+          PreTag="div"
+          {...props}>
+          {String(children).replace(/\n$/, "")}
+        </SyntaxHighlighter>
+      ) : (
+        <code
+          className={className}
+          {...props}>
+          {children}
+        </code>
+      );
+    },
+  };
 
   return (
     <div className="flex flex-col h-screen w-screen">
@@ -96,14 +131,13 @@ const Editor: React.FC<EditorProps> = ({
           <ThemeColorToggle />
         </div>
       </div>
-
       <div className="border-b border-gray-300 px-4 py-2 flex items-center gap-2 bg-background">
         <Tag className="w-4 h-4 text-primary" />
         <div className="flex flex-wrap gap-2 items-center flex-1">
           {tags.map((tag) => (
             <span
               key={tag}
-              className="bg-gray-200 dark:bg-gray-700 text-sm px-2 py-1 rounded-full flex items-center gap-1">
+              className="bg-gray-200 dark:bg-slate-800 text-sm px-2 py-1 rounded-full flex items-center gap-1">
               <span className="text-primary">{tag}</span>
               <button
                 onClick={() => onRemoveTag(tag)}
@@ -126,7 +160,6 @@ const Editor: React.FC<EditorProps> = ({
           Last Updated: <strong>{lastUpdated}</strong>
         </div>
       </div>
-
       <div className="relative flex-1 w-full">
         <button
           onClick={() => setIsPreview(!isPreview)}
@@ -141,12 +174,12 @@ const Editor: React.FC<EditorProps> = ({
             </>
           )}
         </button>
-
         {isPreview ? (
-          <div className="h-full w-full overflow-auto bg-gray-100 dark:bg-gray-800 text-black dark:text-white p-6">
+          <div className="h-full w-full overflow-auto bg-background text-black dark:text-white p-6">
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkBreaks]}
-              className="markdown-content max-w-none">
+              components={CodeBlock}
+              className="markdown-content prose prose-sm sm:prose-base dark:prose-invert max-w-none">
               {description}
             </ReactMarkdown>
           </div>
