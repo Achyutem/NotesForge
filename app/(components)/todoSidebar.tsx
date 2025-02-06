@@ -126,7 +126,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
               key={todo.id}
               className={`p-4 cursor-pointer border-b border-gray-300 dark:border-gray-700 flex justify-between items-center ${
                 isSelected
-                  ? "bg-gray-200 dark:bg-gray-800"
+                  ? "bg-gray-200 dark:bg-slate-900"
                   : "hover:bg-gray-200 dark:hover:bg-gray-800"
               }`}
               onClick={() => onTodoSelect(todo)}>
@@ -139,7 +139,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
                     {displayTags.map((tag) => (
                       <span
                         key={tag}
-                        className="inline-block px-2 py-0.5 bg-background bg-opacity-20 text-primary text-xs rounded-full">
+                        className="inline-block px-2 py-0.5 bg-opacity-20 text-primary text-xs rounded-full dark:bg-slate-800 bg-gray-400">
                         {tag}
                       </span>
                     ))}
@@ -152,11 +152,13 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="text-gray-500 hover:text-gray-700 p-2">
+                  <button className="text-gray-500 hover:text-gray-200 p-2">
                     <MoreVertical className="w-5 h-5" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent
+                  align="end"
+                  className="bg-background">
                   <DropdownMenuItem onClick={() => onTodoSelect(todo)}>
                     <Pencil className="w-4 h-4 mr-2" /> Edit
                   </DropdownMenuItem>
