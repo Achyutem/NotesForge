@@ -6,6 +6,8 @@ import axios from "axios";
 import TodoSidebar from "../(components)/todoSidebar";
 import Editor from "../(components)/editor";
 import { Todo, ApiResponse } from "../utils/types";
+import { ThemeColorToggle } from "../(components)/themeColor";
+import { ThemeModeToggle } from "../(components)/themeMode";
 
 const Todos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -242,8 +244,17 @@ const Todos = () => {
           isSaving={isSaving}
         />
       ) : (
-        <div className="flex-1 flex items-center justify-center text-gray-500">
-          Select a todo or create a new one
+        <div className="flex-1 flex flex-col h-screen w-screen">
+          <div className="sticky top-0 bg-background px-4 py-3 md:p-6 flex justify-between items-center">
+            <div></div>
+            <div className="flex items-center gap-2">
+              <ThemeModeToggle />
+              <ThemeColorToggle />
+            </div>
+          </div>
+          <div className="flex-1 flex items-center justify-center bg-background dark:text-gray-200 text-gray-700">
+            Select a todo or create a new one
+          </div>
         </div>
       )}
     </div>
