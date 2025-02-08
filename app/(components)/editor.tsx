@@ -69,16 +69,15 @@ const Editor: React.FC<EditorProps> = ({
 
   const CodeBlock: Components = {
     code({
-      node,
       inline,
       className,
       children,
       ...props
     }: {
-      node?: any;
       inline?: boolean;
       className?: string;
       children?: React.ReactNode;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       [key: string]: any;
     }) {
       const match = /language-(\w+)/.exec(className || "");
