@@ -45,8 +45,6 @@ Ensure you have **[Docker](https://docs.docker.com/get-docker/)** installed on y
 ```sh
 git clone https://github.com/yourusername/taskflow.git
 cd taskflow
-npm install
-npm run dev
 ```
 
 ---
