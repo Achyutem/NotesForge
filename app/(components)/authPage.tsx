@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const appName = "TaskFlow";
+  const appName = "NotesForge";
   const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
@@ -102,9 +102,9 @@ const AuthPage = () => {
         </h1>
 
         <p className="text-gray-400 text-lg lg:text-xl max-w-xl mb-8">
-          {appName} helps you manage your tasks with ease. Create, organize, and
-          track your todos in a beautiful and intuitive interface. Never miss a
-          deadline again.
+          {appName} makes note-taking effortless. Capture, organize, and format
+          your thoughts with Markdown support in a sleek and intuitive
+          interface. Stay organized and never lose an idea again.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-12">

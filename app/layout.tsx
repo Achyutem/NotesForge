@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Taskflow",
-  description: "Simple Markdown Todo App`",
+  title: "NotesForge",
+  description: "Simple Markdown Notes App`",
 };
 
 export default function RootLayout({
