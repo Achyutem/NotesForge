@@ -1,6 +1,6 @@
-# TaskFlow
+# NotesForge
 
-A lightweight task management application built with **Next.js** and **TypeScript**, powered by **SQLite** for simplicity and efficiency.
+A fast and lightweight task manager built with **Next.js** and **TypeScript**, designed for efficiency and simplicity with **SQLite** as its backend.
 
 ## 🚀 Features
 
@@ -24,8 +24,8 @@ Ensure you have **[Node.js](https://nodejs.org/)** (v16 or later) installed on y
 ### 1️⃣ Clone the Repository
 
 ```sh
-git clone https://github.com/yourusername/taskflow.git
-cd taskflow
+git clone https://github.com/achyutem/notesforge.git
+cd notesforge
 npm install
 npm run dev
 ```
@@ -43,8 +43,8 @@ Ensure you have **[Docker](https://docs.docker.com/get-docker/)** installed on y
 ### 1️⃣ Clone the Repository
 
 ```sh
-git clone https://github.com/yourusername/taskflow.git
-cd taskflow
+git clone https://github.com/achyutem/notesforge.git
+cd notesforge
 ```
 
 ---
@@ -54,11 +54,11 @@ cd taskflow
 To create a fresh Docker image, run:
 
 ```sh
-docker build --no-cache -t taskflow .
+docker build --no-cache -t notesforge .
 ```
 
 To run the docker image, run:
 
 ```
-docker run -p 3000:3000 taskflow
+docker run -p 3000:3000 notesforge
 ```
