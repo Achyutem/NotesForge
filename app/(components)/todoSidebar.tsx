@@ -152,7 +152,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="text-gray-500 hover:text-gray-200 p-2">
+                  <button className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 p-2">
                     <MoreVertical className="w-5 h-5" />
                   </button>
                 </DropdownMenuTrigger>
