@@ -162,6 +162,7 @@ const Editor: React.FC<EditorProps> = ({
       <div className="relative flex-1 w-full">
         <button
           onClick={() => setIsPreview(!isPreview)}
+          title="Toggle Preview (Ctrl + P)"
           className="absolute top-2 right-4 text-primary text-sm hover:underline flex items-center gap-1 z-10">
           {isPreview ? (
             <>
