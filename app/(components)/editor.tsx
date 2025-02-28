@@ -41,6 +41,7 @@ const Editor: React.FC<EditorProps> = ({
   onSave,
 }) => {
   const [isPreview, setIsPreview] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState("");
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -60,12 +61,50 @@ const Editor: React.FC<EditorProps> = ({
     }
   };
 
-  const lastUpdated = new Date(
-    todo.updatedAt || todo.createdAt
-  ).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  useEffect(() => {
+    const updateLastUpdated = () => {
+      if (todo.updatedAt || todo.createdAt) {
+        const updatedTime = new Date(todo.updatedAt || todo.createdAt);
+        const now = new Date();
+        const diffInMinutes = Math.floor(
+          (now.getTime() - updatedTime.getTime()) / (1000 * 60)
+        );
+
+        if (diffInMinutes < 60) {
+          setLastUpdated(
+            `${
+              diffInMinutes === 0
+                ? "Just now"
+                : `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`
+            }`
+          );
+        } else {
+          setLastUpdated(
+            updatedTime.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          );
+        }
+      }
+    };
+
+    updateLastUpdated();
+    const interval = setInterval(updateLastUpdated, 60000);
+
+    return () => clearInterval(interval);
+  }, [todo.updatedAt, todo.createdAt]);
+
+  //   useEffect(() => {
+  //     if (todo.updatedAt || todo.createdAt) {
+  //       setLastUpdated(
+  //         new Date(todo.updatedAt || todo.createdAt).toLocaleTimeString([], {
+  //           hour: "2-digit",
+  //           minute: "2-digit",
+  //         })
+  //       );
+  //     }
+  //   }, [todo.updatedAt, todo.createdAt]);
 
   const CodeBlock: Components = {
     code({
