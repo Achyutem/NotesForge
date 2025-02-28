@@ -80,8 +80,8 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
   }
 
   return (
-    <div className="w-72 bg-background border-r border-gray-300 flex flex-col">
-      <div className="p-4 border-b border-gray-300">
+    <div className="w-72 bg-background border-r border-gray-300 flex flex-col h-auto">
+      <div className="p-4 border-b border-gray-300 sticky top-0 bg-background z-10">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-primary font-bold">Notes</h1>
           <div className="flex items-center">
@@ -111,6 +111,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
           />
         </div>
       </div>
+
       <div className="flex-1 overflow-y-auto">
         {todos.map((todo) => {
           const isSelected = selectedTodo?.id === todo.id;
@@ -131,7 +132,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
               }`}
               onClick={() => onTodoSelect(todo)}>
               <div className="flex-1">
-                <h3 className="text-primary dark:text-whitefont-medium truncate">
+                <h3 className="text-primary dark:text-white font-medium truncate">
                   {displayTitle}
                 </h3>
                 {displayTags && displayTags.length > 0 && (
