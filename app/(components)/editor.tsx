@@ -198,7 +198,7 @@ const Editor: React.FC<EditorProps> = ({
           Last Updated: <strong>{lastUpdated}</strong>
         </div>
       </div>
-      <div className="relative flex-1 w-full">
+      <div className="relative flex-1 w-full overflow-hidden">
         <button
           onClick={() => setIsPreview(!isPreview)}
           title="Toggle Preview (Ctrl + P)"
