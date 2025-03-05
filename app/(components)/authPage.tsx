@@ -65,8 +65,6 @@ const AuthPage = () => {
       router.push("/dashboard");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      // console.log("authpage 67 error", err);
-      // console.log("authpage 68 error", err.message);
       setError(err.message);
     } finally {
       setLoading(false);
