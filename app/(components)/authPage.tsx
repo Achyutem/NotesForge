@@ -136,7 +136,7 @@ const AuthPage = () => {
               }
             }}
             className="px-6 py-3 bg-[#A594F9] hover:bg-purple-400 rounded-lg flex items-center justify-center gap-2 transition-all">
-            Start Organizing
+            Try Demo
             <ArrowRight className="w-5 h-5" />
           </button>
           <button className="px-6 py-3 border border-[#A594F9] rounded-lg flex items-center justify-center gap-2 hover:bg-[#A594F9]/10 transition-all">
