@@ -65,8 +65,8 @@ const AuthPage = () => {
       router.push("/dashboard");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      console.log("authpage 67 error", err);
-      console.log("authpage 68 error", err.message);
+      // console.log("authpage 67 error", err);
+      // console.log("authpage 68 error", err.message);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -108,7 +108,34 @@ const AuthPage = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
-          <button className="px-6 py-3 bg-[#A594F9] hover:bg-purple-400 rounded-lg flex items-center justify-center gap-2 transition-all">
+          <button
+            onClick={async () => {
+              try {
+                const response = await fetch("/api/auth/login", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  credentials: "include",
+                  body: JSON.stringify({
+                    email: "demo@demo.com",
+                    password: "demo123",
+                  }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                  throw new Error(data.error || "Login failed");
+                }
+
+                router.push("/dashboard");
+              } catch (err: any) {
+                console.error("Login error:", err);
+                setError(err.message);
+              }
+            }}
+            className="px-6 py-3 bg-[#A594F9] hover:bg-purple-400 rounded-lg flex items-center justify-center gap-2 transition-all">
             Start Organizing
             <ArrowRight className="w-5 h-5" />
           </button>
