@@ -4,10 +4,11 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
-import { Trash, Tag, X, Save, Clock, Eye, Edit3 } from "lucide-react";
+import { LogOut, Trash, Tag, X, Save, Clock, Eye, Edit3 } from "lucide-react";
 import { Todo } from "../utils/types";
 import { ThemeModeToggle } from "./themeMode";
 import { ThemeColorToggle } from "./themeColor";
+import { logout } from "../utils/logout";
 
 interface EditorProps {
   todo: Todo;
@@ -95,17 +96,6 @@ const Editor: React.FC<EditorProps> = ({
     return () => clearInterval(interval);
   }, [todo.updatedAt, todo.createdAt]);
 
-  //   useEffect(() => {
-  //     if (todo.updatedAt || todo.createdAt) {
-  //       setLastUpdated(
-  //         new Date(todo.updatedAt || todo.createdAt).toLocaleTimeString([], {
-  //           hour: "2-digit",
-  //           minute: "2-digit",
-  //         })
-  //       );
-  //     }
-  //   }, [todo.updatedAt, todo.createdAt]);
-
   const CodeBlock: Components = {
     code({
       inline,
@@ -167,6 +157,14 @@ const Editor: React.FC<EditorProps> = ({
           )}
           <ThemeModeToggle />
           <ThemeColorToggle />
+          <button
+            onClick={onSave}
+            title="Logout">
+            <LogOut
+              onClick={logout}
+              className="text-red-500"
+            />
+          </button>
         </div>
       </div>
       <div className="border-b border-gray-300 px-4 py-2 flex items-center gap-2 bg-background">
