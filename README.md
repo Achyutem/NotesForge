@@ -65,6 +65,10 @@ docker run -p 3000:3000 notesforge
 
 ## Previews
 
-![preview1](preview1.png)
-![preview2](preview2.png)
-![preview3](preview3.png)
+## ![preview1](preview1.png)
+
+## ![preview4](preview4.png)
+
+## ![preview2](preview2.png)
+
+## ![preview3](preview3.png)
