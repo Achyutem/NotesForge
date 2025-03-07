@@ -4,7 +4,17 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
-import { LogOut, Trash, Tag, X, Save, Clock, Eye, Edit3 } from "lucide-react";
+import {
+  LogOut,
+  Trash,
+  Tag,
+  X,
+  Save,
+  Clock,
+  Eye,
+  Edit3,
+  Download,
+} from "lucide-react";
 import { Todo } from "../utils/types";
 import { ThemeModeToggle } from "./themeMode";
 import { ThemeColorToggle } from "./themeColor";
@@ -157,6 +167,31 @@ const Editor: React.FC<EditorProps> = ({
           )}
           <ThemeModeToggle />
           <ThemeColorToggle />
+          <button
+            className="text-primary hover:text-blue-500 transition-colors p-1.5 rounded-md"
+            onClick={async () => {
+              try {
+                const response = await fetch("/api/export-todos");
+                if (response.ok) {
+                  const blob = await response.blob();
+                  const url = URL.createObjectURL(blob);
+                  const link = document.createElement("a");
+                  link.href = url;
+                  link.download = "todos.json";
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(url);
+                } else {
+                  console.error("Failed to export todos");
+                }
+              } catch (error) {
+                console.error("Error exporting todos:", error);
+              }
+            }}
+            title="Export Todos">
+            <Download className="w-5 h-5" />
+          </button>
           <button
             onClick={onSave}
             title="Logout">
