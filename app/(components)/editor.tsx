@@ -177,7 +177,7 @@ const Editor: React.FC<EditorProps> = ({
                   const url = URL.createObjectURL(blob);
                   const link = document.createElement("a");
                   link.href = url;
-                  link.download = "todos.json";
+                  link.download = "todos.csv";
                   document.body.appendChild(link);
                   link.click();
                   document.body.removeChild(link);
