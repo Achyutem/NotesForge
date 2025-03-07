@@ -171,7 +171,7 @@ const Editor: React.FC<EditorProps> = ({
             className="text-primary hover:text-blue-500 transition-colors p-1.5 rounded-md"
             onClick={async () => {
               try {
-                const response = await fetch("/api/export-todos");
+                const response = await fetch("/api/export");
                 if (response.ok) {
                   const blob = await response.blob();
                   const url = URL.createObjectURL(blob);
