@@ -28,7 +28,6 @@ CREATE TABLE IF NOT EXISTS todos (
     userId INTEGER,
     title TEXT NOT NULL,
     description TEXT,
-    completed BOOLEAN DEFAULT 0,
     tags TEXT, -- JSON string for array of tags
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,

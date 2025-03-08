@@ -74,7 +74,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    const { title, description, tags, completed } = await request.json();
+    const { title, description, tags } = await request.json();
     const db = await openDb();
     const updateFields = [];
     const updateValues = [];
@@ -90,10 +90,6 @@ export async function PATCH(request: Request) {
     if (tags !== undefined) {
       updateFields.push('tags = ?');
       updateValues.push(JSON.stringify(tags));
-    }
-    if (completed !== undefined) {
-      updateFields.push('completed = ?');
-      updateValues.push(completed ? 1 : 0);
     }
 
     if (updateFields.length === 0) {

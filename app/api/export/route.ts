@@ -17,7 +17,6 @@ function queryTodos() {
           userId,
           title, 
           description, 
-          completed, 
           tags,
           createdAt
         FROM todos
@@ -39,7 +38,7 @@ function queryTodos() {
 }
 
 function todosToCSV(todos : any) {
-  const header = "ID,User ID,Title,Description,Completed,Tags,Created At\n";
+  const header = "ID,User ID,Title,Description,Tags,Created At\n";
   
   const rows = todos.map((todo : any) => {
     return [
@@ -47,7 +46,6 @@ function todosToCSV(todos : any) {
       todo.userId,
       `"${(todo.title || '').replace(/"/g, '""')}"`,
       `"${(todo.description || '').replace(/"/g, '""')}"`,
-      todo.completed ? 'Yes' : 'No',
       todo.tags ? `"${todo.tags.replace(/"/g, '""')}"` : '',
       todo.createdAt
     ].join(',');
