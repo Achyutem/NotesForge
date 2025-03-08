@@ -83,7 +83,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
     <div className="w-72 bg-background border-r border-gray-300 flex flex-col h-auto">
       <div className="p-4 border-b border-gray-300 sticky top-0 bg-background z-10">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-primary font-bold">Notes</h1>
+          <h1 className="text-primary font-bold">NotesForge</h1>
           <div className="flex items-center">
             <button
               onClick={toggleSidebar}
