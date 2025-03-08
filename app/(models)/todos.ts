@@ -26,11 +26,6 @@ export async function getTodosByUserId(userId: number) {
   }));
 }
 
-export async function updateTodoCompletion(id: number, completed: boolean) {
-  const db = await openDb();
-  await db.run('UPDATE todos SET completed = ? WHERE id = ?', [completed ? 1 : 0, id]);
-}
-
 export async function deleteTodo(id: number) {
   const db = await openDb();
   await db.run('DELETE FROM todos WHERE id = ?', [id]);
