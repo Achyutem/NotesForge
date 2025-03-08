@@ -13,7 +13,7 @@ import {
   Clock,
   Eye,
   Edit3,
-  Download,
+  Upload,
 } from "lucide-react";
 import { Todo } from "../utils/types";
 import { ThemeModeToggle } from "./themeMode";
@@ -77,21 +77,29 @@ const Editor: React.FC<EditorProps> = ({
       if (todo.updatedAt || todo.createdAt) {
         const updatedTime = new Date(todo.updatedAt || todo.createdAt);
         const now = new Date();
-        const diffInMinutes = Math.floor(
-          (now.getTime() - updatedTime.getTime()) / (1000 * 60)
-        );
+        const diffInMs = now.getTime() - updatedTime.getTime();
+        const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+        const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+        const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
-        if (diffInMinutes < 60) {
+        if (diffInMinutes < 1) {
+          setLastUpdated("Just now");
+        } else if (diffInMinutes < 60) {
           setLastUpdated(
-            `${
-              diffInMinutes === 0
-                ? "Just now"
-                : `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`
-            }`
+            `${diffInMinutes} minute${diffInMinutes !== 1 ? "s" : ""} ago`
           );
+        } else if (diffInHours < 24) {
+          setLastUpdated(
+            `${diffInHours} hour${diffInHours !== 1 ? "s" : ""} ago`
+          );
+        } else if (diffInDays < 7) {
+          setLastUpdated(`${diffInDays} day${diffInDays !== 1 ? "s" : ""} ago`);
         } else {
           setLastUpdated(
-            updatedTime.toLocaleTimeString([], {
+            updatedTime.toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
               hour: "2-digit",
               minute: "2-digit",
             })
@@ -165,8 +173,6 @@ const Editor: React.FC<EditorProps> = ({
               <Trash className="w-5 h-5" />
             </button>
           )}
-          <ThemeModeToggle />
-          <ThemeColorToggle />
           <button
             className="text-primary hover:text-blue-500 transition-colors p-1.5 rounded-md"
             onClick={async () => {
@@ -190,8 +196,10 @@ const Editor: React.FC<EditorProps> = ({
               }
             }}
             title="Export Todos">
-            <Download className="w-5 h-5" />
+            <Upload className="w-5 h-5" />
           </button>
+          <ThemeModeToggle />
+          <ThemeColorToggle />
           <button
             onClick={onSave}
             title="Logout">
