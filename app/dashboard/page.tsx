@@ -8,6 +8,7 @@ import Editor from "../(components)/editor";
 import { Todo, ApiResponse } from "../utils/types";
 import { ThemeColorToggle } from "../(components)/themeColor";
 import { ThemeModeToggle } from "../(components)/themeMode";
+import ImportTodos from "../(components)/import";
 
 const Todos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -44,6 +45,12 @@ const Todos = () => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
         saveCurrentTodo();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") {
+        e.preventDefault();
+        if (selectedTodo?.id) {
+          deleteTodo(selectedTodo.id);
+        }
       }
     };
 
@@ -131,7 +138,6 @@ const Todos = () => {
       id: "",
       title: "",
       description: "",
-      completed: false,
       tags: [],
       userId: 1,
       createdAt: new Date().toLocaleString(),
@@ -246,6 +252,7 @@ const Todos = () => {
           <div className="sticky top-0 bg-background px-4 py-3 md:p-6 flex justify-between items-center">
             <div></div>
             <div className="flex items-center gap-2">
+              <ImportTodos />
               <ThemeModeToggle />
               <ThemeColorToggle />
             </div>
