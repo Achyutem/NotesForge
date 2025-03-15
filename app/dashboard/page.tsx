@@ -9,6 +9,8 @@ import { Todo, ApiResponse } from "../utils/types";
 import { ThemeColorToggle } from "../(components)/themeColor";
 import { ThemeModeToggle } from "../(components)/themeMode";
 import ImportTodos from "../(components)/import";
+import { logout } from "../utils/logout";
+import { LogOut } from "lucide-react";
 
 const Todos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -255,6 +257,12 @@ const Todos = () => {
               <ImportTodos />
               <ThemeModeToggle />
               <ThemeColorToggle />
+              <button title="Logout">
+                <LogOut
+                  onClick={logout}
+                  className="text-red-500"
+                />
+              </button>
             </div>
           </div>
           <div className="flex-1 flex items-center justify-center bg-background dark:text-gray-200 text-gray-700">
