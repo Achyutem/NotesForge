@@ -1,5 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ReactMarkdown, { Components } from "react-markdown";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import { HelpCircle } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkGfm from "remark-gfm";
@@ -54,16 +60,17 @@ const Editor: React.FC<EditorProps> = ({
   const [isPreview, setIsPreview] = useState(false);
   const [lastUpdated, setLastUpdated] = useState("");
 
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key.toLowerCase() === "p") {
+      e.preventDefault();
+      setIsPreview((prev) => !prev);
+    }
+  }, []);
+
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key.toLowerCase() === "p") {
-        e.preventDefault();
-        setIsPreview((prev) => !prev);
-      }
-    };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [handleKeyDown]);
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && newTag.trim()) {
@@ -82,29 +89,33 @@ const Editor: React.FC<EditorProps> = ({
         const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
         const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
-        if (diffInMinutes < 1) {
-          setLastUpdated("Just now");
-        } else if (diffInMinutes < 60) {
-          setLastUpdated(
-            `${diffInMinutes} minute${diffInMinutes !== 1 ? "s" : ""} ago`
-          );
-        } else if (diffInHours < 24) {
-          setLastUpdated(
-            `${diffInHours} hour${diffInHours !== 1 ? "s" : ""} ago`
-          );
-        } else if (diffInDays < 7) {
-          setLastUpdated(`${diffInDays} day${diffInDays !== 1 ? "s" : ""} ago`);
-        } else {
-          setLastUpdated(
-            updatedTime.toLocaleDateString(undefined, {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          );
-        }
+        let newLastUpdated = "Just now";
+        if (diffInMinutes >= 1)
+          newLastUpdated = `${diffInMinutes} minute${
+            diffInMinutes !== 1 ? "s" : ""
+          } ago`;
+        if (diffInHours >= 1)
+          newLastUpdated = `${diffInHours} hour${
+            diffInHours !== 1 ? "s" : ""
+          } ago`;
+        if (diffInDays >= 1)
+          newLastUpdated = `${diffInDays} day${
+            diffInDays !== 1 ? "s" : ""
+          } ago`;
+
+        const formattedDate = updatedTime.toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        if (diffInDays >= 7) newLastUpdated = formattedDate;
+
+        setLastUpdated((prev) =>
+          prev !== newLastUpdated ? newLastUpdated : prev
+        );
       }
     };
 
@@ -132,6 +143,7 @@ const Editor: React.FC<EditorProps> = ({
         <SyntaxHighlighter
           style={oneDark}
           language={match[1]}
+          wrapLongLines={true}
           PreTag="div"
           {...props}>
           {String(children).replace(/\n$/, "")}
@@ -162,7 +174,8 @@ const Editor: React.FC<EditorProps> = ({
             onClick={onSave}
             disabled={isSaving}
             className="text-primary hover:text-green-500 transition-colors p-1.5 disabled:opacity-50 rounded-md"
-            title="Save (Ctrl + S)">
+            title="Save (Ctrl + S)"
+            aria-label="Save">
             <Save className="w-5 h-5" />
           </button>
           {todo.id && (
@@ -234,9 +247,54 @@ const Editor: React.FC<EditorProps> = ({
             className="bg-transparent text-primary text-sm focus:outline-none min-w-[80px] flex-1"
           />
         </div>
-        <div className="px-4 py-2 text-sm dark:text-gray-200 text-gray-700">
-          <Clock className="w-4 h-4 text-primary inline-block mr-2" />
+        <div className="px-4 py-2 text-sm flex items-center gap-2 dark:text-gray-200 text-gray-700">
+          <Clock className="w-4 h-4 text-primary inline-block" />
           Last Updated: <strong>{lastUpdated}</strong>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                className="text-primary hover:text-blue-500 transition-colors p-1.5 rounded-md"
+                title="Markdown Help">
+                <HelpCircle className="w-5 h-5" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-4 text-sm bg-background border border-gray-300 dark:border-gray-700 rounded-xl shadow-xl">
+              <h3 className="font-semibold text-lg mb-3 text-primary flex items-center gap-2">
+                Markdown Guide
+              </h3>
+              <div className="overflow-auto max-h-72 space-y-2 text-sm font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded-md">
+                <pre className="whitespace-pre-wrap">
+                  {`# Headings
+# H1
+## H2
+### H3
+
+**Bold**:  **text**
+_Italic_:  *text*
+\`Inline Code\`:  \`code\`
+
+## Lists
+- Item 1
+- Item 2
+
+## Links
+[Example](https://example.com)
+Syntax:  \`[Text](URL)\`
+
+## Code Block
+\`\`\`js
+console.log("Hello, Markdown!");
+\`\`\`
+
+## Tables
+| Header 1 | Header 2 | Header 3 |
+|----------|----------|----------|
+| Row 1    | Data     | More     |
+| Row 2    | Data     | More     |`}
+                </pre>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
       <div className="relative flex-1 w-full overflow-hidden">
