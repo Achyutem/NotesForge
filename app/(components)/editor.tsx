@@ -22,8 +22,7 @@ import {
   Upload,
 } from "lucide-react";
 import { Todo } from "../utils/types";
-import { ThemeModeToggle } from "./themeMode";
-import { ThemeColorToggle } from "./themeColor";
+import { Theme } from "./themeColor";
 import { logout } from "../utils/logout";
 
 interface EditorProps {
@@ -211,8 +210,7 @@ const Editor: React.FC<EditorProps> = ({
             title="Export Todos">
             <Upload className="w-5 h-5" />
           </button>
-          <ThemeModeToggle />
-          <ThemeColorToggle />
+          <Theme />
           <button
             onClick={onSave}
             title="Logout">
