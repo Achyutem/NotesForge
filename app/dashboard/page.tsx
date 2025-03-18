@@ -6,8 +6,7 @@ import axios from "axios";
 import TodoSidebar from "../(components)/todoSidebar";
 import Editor from "../(components)/editor";
 import { Todo, ApiResponse } from "../utils/types";
-import { ThemeColorToggle } from "../(components)/themeColor";
-import { ThemeModeToggle } from "../(components)/themeMode";
+import { Theme } from "../(components)/themeColor";
 import ImportTodos from "../(components)/import";
 import { logout } from "../utils/logout";
 import { LogOut } from "lucide-react";
@@ -63,7 +62,9 @@ const Todos = () => {
   const fetchTodos = async () => {
     try {
       setLoading(true);
-      const response = await axios.get<ApiResponse>("/api/todos");
+      const response = await axios.get<ApiResponse>("/api/todos", {
+        withCredentials: true, // Ensure cookies are sent
+      });
 
       if (response.status === 200 && response.data.todos) {
         const fetchedTodos = Array.isArray(response.data.todos)
@@ -255,8 +256,7 @@ const Todos = () => {
             <div></div>
             <div className="flex items-center gap-2">
               <ImportTodos />
-              <ThemeModeToggle />
-              <ThemeColorToggle />
+              <Theme />
               <button title="Logout">
                 <LogOut
                   onClick={logout}
