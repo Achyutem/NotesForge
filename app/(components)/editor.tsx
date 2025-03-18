@@ -213,7 +213,8 @@ const Editor: React.FC<EditorProps> = ({
           <Theme />
           <button
             onClick={onSave}
-            title="Logout">
+            title="Logout"
+            className="pl-2">
             <LogOut
               onClick={logout}
               className="text-red-500"
