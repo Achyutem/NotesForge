@@ -246,7 +246,7 @@ const AuthPage = () => {
             </button>
           </form>
 
-          {isLogin && (
+          {/* {isLogin && (
             <p className="mt-4 text-center text-sm text-gray-400">
               Forgot your password?{" "}
               <a
@@ -255,7 +255,7 @@ const AuthPage = () => {
                 Reset it here
               </a>
             </p>
-          )}
+          )} */}
         </div>
       </motion.div>
     </main>
