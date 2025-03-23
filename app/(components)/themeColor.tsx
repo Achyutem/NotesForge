@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Moon, Sun, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
+import { motion } from "framer-motion";
 import {
   Select,
   SelectContent,
@@ -17,32 +18,32 @@ const availableThemeColors = [
   {
     name: "Zinc",
     light: "bg-zinc-900 hover:bg-zinc-800",
-    dark: "bg-zinc-700 hover:bg-zinc-600",
+    dark: "bg-zinc-200 hover:bg-zinc-100",
   },
   {
     name: "Rose",
     light: "bg-rose-600 hover:bg-rose-500",
-    dark: "bg-rose-700 hover:bg-rose-600",
+    dark: "bg-rose-500 hover:bg-rose-600",
   },
   {
     name: "Blue",
     light: "bg-blue-600 hover:bg-blue-500",
-    dark: "bg-blue-700 hover:bg-blue-600",
+    dark: "bg-blue-500 hover:bg-blue-600",
   },
   {
     name: "Green",
-    light: "bg-green-600 hover:bg-green-500",
-    dark: "bg-green-500 hover:bg-green-400",
+    light: "bg-green-500 hover:bg-green-500",
+    dark: "bg-green-400 hover:bg-green-500",
   },
   {
     name: "Orange",
     light: "bg-orange-500 hover:bg-orange-400",
-    dark: "bg-orange-700 hover:bg-orange-600",
+    dark: "bg-orange-500 hover:bg-orange-600",
   },
   {
     name: "Purple",
     light: "bg-purple-600 hover:bg-purple-500",
-    dark: "bg-purple-700 hover:bg-purple-600",
+    dark: "bg-purple-600 hover:bg-purple-500",
   },
 ];
 
@@ -56,18 +57,28 @@ export function Theme() {
 
   return (
     <div className="relative flex items-center space-x-2">
-      {/* Theme Mode Toggle Button */}
       <Button
         variant="outline"
         size="icon"
         aria-label="Toggle theme mode"
         title="Toggle theme mode"
-        onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
-        <Sun className="text-primary h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-        <Moon className="text-primary absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+        onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+        className="relative overflow-hidden flex items-center justify-center">
+        <motion.div
+          key={theme}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          className="absolute">
+          {theme === "dark" ? (
+            <Moon className="text-primary h-[1.2rem] w-[1.2rem]" />
+          ) : (
+            <Sun className="text-primary h-[1.2rem] w-[1.2rem]" />
+          )}
+        </motion.div>
       </Button>
 
-      {/* Color Selection Dropdown */}
       <Select
         onValueChange={(value) => setThemeColor(value as ThemeColors)}
         defaultValue={themeColor}>
@@ -79,21 +90,31 @@ export function Theme() {
           )}>
           <ChevronDown className="text-white w-2.5 h-2.5 transition-transform duration-200" />
         </SelectTrigger>
-        <SelectContent className="border-muted p-2">
-          <div className="flex space-x-2 px-2">
-            {availableThemeColors.map(({ name, light, dark }) => (
-              <SelectItem
-                key={name}
-                value={name}
-                className="p-0 m-0 border-none">
-                <div
-                  className={cn(
-                    "rounded-full w-8 h-8 cursor-pointer transition-all hover:ring-2 hover:ring-offset-2",
-                    theme === "light" ? light : dark
-                  )}></div>
-              </SelectItem>
-            ))}
-          </div>
+        <SelectContent>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="border-muted p-2 shadow-lg bg-background rounded-lg">
+            <div className="flex space-x-2 px-2">
+              {availableThemeColors.map(({ name, light, dark }) => (
+                <SelectItem
+                  key={name}
+                  value={name}
+                  className="p-0 m-0 border-none">
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className={cn(
+                      "rounded-full w-8 h-8 cursor-pointer transition-all hover:ring-2 hover:ring-offset-2",
+                      theme === "light" ? light : dark
+                    )}
+                  />
+                </SelectItem>
+              ))}
+            </div>
+          </motion.div>
         </SelectContent>
       </Select>
     </div>
