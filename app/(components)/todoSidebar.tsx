@@ -65,13 +65,13 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
       <div className="w-12 border-r bg-background border-gray-300 flex flex-col items-center py-4">
         <button
           onClick={toggleSidebar}
-          className="text-primary hover:text-[#bd38cc] transition-colors mb-4"
+          className="text-primary hover:animate-pulse mb-4"
           title="Expand Sidebar">
           <ChevronsRight className="w-6 h-6" />
         </button>
         <button
           onClick={onCreateTodo}
-          className="text-primary hover:text-[#bd38cc] transition-colors"
+          className="text-primary hover:animate-pulse"
           title="New Note (ctrl+shift+n)">
           <Plus className="w-5 h-5" />
         </button>
@@ -87,13 +87,13 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
           <div className="flex items-center">
             <button
               onClick={toggleSidebar}
-              className="text-primary hover:text-[#bd38cc] transition-colors mr-2"
+              className="text-primary hover:animate-pulse mr-2"
               title="Collapse Sidebar(ctrl+B)">
               <ChevronsLeft className="w-5 h-5" />
             </button>
             <button
               onClick={onCreateTodo}
-              className="text-primary hover:text-[#bd38cc] transition-colors p-2"
+              className="text-primary hover:animate-pulse p-2"
               title="New Note (ctrl+shift+n)">
               <Plus className="w-5 h-5" />
             </button>
@@ -107,7 +107,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
             placeholder="Search notes... (ctrl + f)"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="bg-transparent text-black dark:text-white text-sm w-full focus:outline-none"
+            className="bg-transparent text-black dark:text-white text-sm w-full focus:outline-none placeholder:font-semibold placeholder:text-gray-500 dark:placeholder:text-gray-400"
           />
         </div>
       </div>
@@ -140,7 +140,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
                     {displayTags.map((tag) => (
                       <span
                         key={tag}
-                        className="inline-block px-2 py-0.5 bg-opacity-20 text-primary text-xs rounded-full dark:bg-slate-800 bg-gray-400">
+                        className="font-semibold inline-block px-2 py-0.5 bg-opacity-20 text-primary text-xs rounded-full dark:bg-slate-800 bg-gray-400">
                         {tag}
                       </span>
                     ))}
