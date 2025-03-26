@@ -63,7 +63,7 @@ const ImportTodos = () => {
       <Button
         onClick={handleButtonClick}
         variant="default"
-        className="w-full bg-primary text-gray-800 hover:bg-purple-500 hover:text-white transition-colors">
+        className="w-full border light:border-gray-200 dark:border-gray-800 bg-background text-primary hover:bg-gray-100 dark:hover:bg-zinc-800">
         <Upload className="mr-2 h-4 w-4" /> Import CSV
       </Button>
 
