@@ -65,13 +65,13 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
       <div className="w-12 border-r bg-background border-gray-300 flex flex-col items-center py-4">
         <button
           onClick={toggleSidebar}
-          className="text-primary hover:animate-pulse mb-4"
+          className="p-1 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-2"
           title="Expand Sidebar">
           <ChevronsRight className="w-6 h-6" />
         </button>
         <button
           onClick={onCreateTodo}
-          className="text-primary hover:animate-pulse"
+          className="p-1 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-2"
           title="New Note (ctrl+shift+n)">
           <Plus className="w-5 h-5" />
         </button>
@@ -87,13 +87,13 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
           <div className="flex items-center">
             <button
               onClick={toggleSidebar}
-              className="text-primary hover:animate-pulse mr-2"
-              title="Collapse Sidebar(ctrl+B)">
+              className="p-1 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-2"
+              title="Collapse Sidebar (Ctrl+B)">
               <ChevronsLeft className="w-5 h-5" />
             </button>
             <button
               onClick={onCreateTodo}
-              className="text-primary hover:animate-pulse p-2"
+              className="p-1 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-2"
               title="New Note (ctrl+shift+n)">
               <Plus className="w-5 h-5" />
             </button>

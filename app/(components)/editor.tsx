@@ -174,7 +174,7 @@ const Editor: React.FC<EditorProps> = ({
 
   return (
     <div className="flex flex-col h-screen w-screen">
-      <div className="sticky top-0 bg-background border-b border-gray-300 px-4 py-3 md:p-6 flex justify-between items-center">
+      <div className="sticky top-0 bg-background border-b border-gray-300 px-4 py-3 md:p-3 flex justify-between items-center">
         <input
           id="todo-title-input"
           type="text"
@@ -183,11 +183,11 @@ const Editor: React.FC<EditorProps> = ({
           className="bg-transparent text-primary text-xl font-medium focus:outline-none flex-1 min-w-[200px]"
           placeholder="Note title"
         />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={onSave}
             disabled={isSaving}
-            className="text-primary hover:animate-pulse p-1.5 disabled:opacity-50 rounded-md"
+            className="p-2 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-1"
             title="Save (Ctrl + S)"
             aria-label="Save">
             <Save className="w-5 h-5" />
@@ -195,13 +195,13 @@ const Editor: React.FC<EditorProps> = ({
           {todo.id && (
             <button
               onClick={onDeleteTodo}
-              className="text-primary hover:animate-pulse p-1.5 rounded-md"
+              className="p-2 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-1"
               title="Delete (Ctrl + D)">
               <Trash className="w-5 h-5" />
             </button>
           )}
           <button
-            className="text-primary hover:animate-pulse p-1.5 rounded-md"
+            className="p-2 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-1"
             onClick={async () => {
               try {
                 const response = await fetch("/api/export");
@@ -232,12 +232,12 @@ const Editor: React.FC<EditorProps> = ({
             className="pl-2">
             <LogOut
               onClick={logout}
-              className="text-red-500 hover:animate-bounce"
+              className="text-red-500 ml-1 hover:animate-bounce"
             />
           </button>
         </div>
       </div>
-      <div className="border-b border-gray-300 px-4 py-2 flex items-center gap-2 bg-background">
+      <div className="border-b border-gray-300 px-4 flex items-center gap-2 bg-background">
         <Tag className="w-4 h-4 text-primary" />
         <div className="flex flex-wrap gap-2 items-center flex-1">
           {tags.map((tag) => (
@@ -334,36 +334,38 @@ console.log("Hello, Markdown!");
           )}
         </button>
         <AnimatePresence mode="wait">
-          {isPreview ? (
-            <motion.div
-              key="preview"
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              variants={previewVariants}
-              transition={transition}
-              className="h-full w-full overflow-auto bg-background text-black dark:text-white p-6">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm, remarkBreaks]}
-                components={CodeBlock}
-                className="markdown-content prose prose-sm sm:prose-base dark:prose-invert max-w-none">
-                {description}
-              </ReactMarkdown>
-            </motion.div>
-          ) : (
-            <motion.textarea
-              key="editor"
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              variants={editorVariants}
-              transition={transition}
-              value={description}
-              onChange={(e) => onDescriptionChange(e.target.value)}
-              className="w-full h-full bg-gray-100 dark:bg-background text-black dark:text-white resize-none focus:outline-none font-mono p-6"
-              placeholder="Start writing here... (Supports Markdown)"
-            />
-          )}
+          <div className="relative h-full w-full bg-background text-black dark:text-white">
+            {isPreview ? (
+              <motion.div
+                key="preview"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={previewVariants}
+                transition={transition}
+                className="absolute inset-0 h-full w-full overflow-auto bg-inherit p-6">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm, remarkBreaks]}
+                  components={CodeBlock}
+                  className="markdown-content prose prose-sm sm:prose-base dark:prose-invert max-w-none">
+                  {description}
+                </ReactMarkdown>
+              </motion.div>
+            ) : (
+              <motion.textarea
+                key="editor"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={editorVariants}
+                transition={transition}
+                value={description}
+                onChange={(e) => onDescriptionChange(e.target.value)}
+                className="absolute inset-0 w-full h-full bg-inherit text-black dark:text-white resize-none focus:outline-none font-mono p-6"
+                placeholder="Start writing here... (Supports Markdown)"
+              />
+            )}
+          </div>
         </AnimatePresence>
       </div>
     </div>
