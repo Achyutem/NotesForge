@@ -56,14 +56,14 @@ export function Theme() {
     theme === "light" ? selectedColor?.light : selectedColor?.dark;
 
   return (
-    <div className="relative flex items-center space-x-2">
+    <div className="relative flex items-center space-x-1">
       <Button
         variant="outline"
         size="icon"
         aria-label="Toggle theme mode"
         title="Toggle theme mode"
         onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-        className="relative overflow-hidden flex items-center justify-center">
+        className="relative mr-1 overflow-hidden flex items-center justify-center">
         <motion.div
           key={theme}
           initial={{ opacity: 0, scale: 0.8 }}
