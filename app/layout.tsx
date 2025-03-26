@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
+import { Fira_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import ThemeDataProvider from "./context/themeProvider";
@@ -9,14 +10,15 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const firaMono = Fira_Mono({
+  variable: "--font-fira-mono",
   subsets: ["latin"],
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
   title: "NotesForge",
-  description: "Simple Markdown Notes App`",
+  description: "Simple Markdown Notes App",
 };
 
 export default function RootLayout({
@@ -29,7 +31,7 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        className={`${geistSans.variable} ${firaMono.variable} antialiased`}>
         <NextThemesProvider
           attribute="class"
           defaultTheme="dark"
