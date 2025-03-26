@@ -254,10 +254,12 @@ const Todos = () => {
         <div className="flex-1 flex flex-col h-screen w-screen">
           <div className="sticky top-0 bg-background px-4 py-3 md:p-6 flex justify-between items-center">
             <div></div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <ImportTodos />
               <Theme />
-              <button title="Logout">
+              <button
+                className="mr-1"
+                title="Logout">
                 <LogOut
                   onClick={logout}
                   className="text-red-500"
