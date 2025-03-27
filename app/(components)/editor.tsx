@@ -6,11 +6,12 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Keyboard } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
+import rehypeRaw from "rehype-raw";
 import {
   LogOut,
   Trash,
@@ -57,8 +58,10 @@ const Editor: React.FC<EditorProps> = ({
   onNewTagChange,
   onSave,
 }) => {
-  const [isPreview, setIsPreview] = useState(false);
+  const [isPreview, setIsPreview] = useState(true);
   const [lastUpdated, setLastUpdated] = useState("");
+  const [isShortcutOpen, setIsShortcutOpen] = useState(false);
+  const [isMarkdownOpen, setIsMarkdownOpen] = useState(false);
 
   const transition = { duration: 0.25, ease: "easeInOut" };
 
@@ -78,6 +81,18 @@ const Editor: React.FC<EditorProps> = ({
     if (e.ctrlKey && e.key.toLowerCase() === "p") {
       e.preventDefault();
       setIsPreview((prev) => !prev);
+    }
+    if (e.ctrlKey && e.key.toLowerCase() === "d") {
+      e.preventDefault();
+      onDeleteTodo();
+    }
+    if (e.ctrlKey && e.key.toLowerCase() === "h") {
+      e.preventDefault();
+      setIsShortcutOpen((prev) => !prev);
+    }
+    if (e.ctrlKey && e.key.toLowerCase() === "m") {
+      e.preventDefault();
+      setIsMarkdownOpen((prev) => !prev);
     }
   }, []);
 
@@ -261,14 +276,16 @@ const Editor: React.FC<EditorProps> = ({
             className="bg-transparent text-primary text-sm focus:outline-none min-w-[80px] flex-1"
           />
         </div>
-        <div className="px-4 py-2 text-sm flex items-center gap-2 dark:text-gray-200 text-gray-700">
+        <div className="px-2 py-2 text-sm flex items-center gap-2 dark:text-gray-200 text-gray-700">
           <Clock className="w-4 h-4 text-primary inline-block" />
           Last Updated: <strong>{lastUpdated}</strong>
-          <Popover>
+          <Popover
+            open={isMarkdownOpen}
+            onOpenChange={setIsMarkdownOpen}>
             <PopoverTrigger asChild>
               <motion.button
                 whileTap={{ scale: 0.9 }}
-                className="text-primary hover:animate-pulse p-1.5 rounded-md">
+                className="py-2 px-1 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
                 <HelpCircle className="w-5 h-5" />
               </motion.button>
             </PopoverTrigger>
@@ -316,6 +333,37 @@ console.log("Hello, Markdown!");
               </motion.div>
             </PopoverContent>
           </Popover>
+          <Popover
+            open={isShortcutOpen}
+            onOpenChange={setIsShortcutOpen}>
+            <PopoverTrigger asChild>
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                className="py-2 px-1 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
+                <Keyboard className="w-5 h-5" />
+              </motion.button>
+            </PopoverTrigger>
+            <PopoverContent asChild>
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="w-80 p-4 text-sm bg-background border border-gray-300 dark:border-gray-700 rounded-xl shadow-xl">
+                <h3 className="font-semibold text-lg mb-3 text-primary">
+                  Keyboard Shortcuts
+                </h3>
+                <ul className="space-y-2 text-sm font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded-md">
+                  <li>Ctrl + Shift + N → New Note</li>
+                  <li>Ctrl + D → Delete Note</li>
+                  <li>Ctrl + B → Collapse/Expand Sidebar</li>
+                  <li>Ctrl + P → Preview</li>
+                  <li>Ctrl + M → View Markdown Cheatsheet</li>
+                  <li>Ctrl + H → View Shortcuts</li>
+                </ul>
+              </motion.div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
       <div className="relative flex-1 w-full overflow-hidden">
@@ -346,24 +394,52 @@ console.log("Hello, Markdown!");
                 className="absolute inset-0 h-full w-full overflow-auto bg-inherit p-6">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkBreaks]}
-                  components={CodeBlock}
+                  rehypePlugins={[rehypeRaw]}
+                  components={{
+                    li: ({ node, children, ...props }: any) => {
+                      const isTaskList = node.children[0]?.tagName === "input";
+                      return (
+                        <li
+                          {...props}
+                          className={
+                            isTaskList
+                              ? "list-none flex items-center gap-2"
+                              : "list-disc"
+                          }>
+                          {children}
+                        </li>
+                      );
+                    },
+                    input: ({ checked, ...props }) => (
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        readOnly
+                        className="form-checkbox rounded text-primary"
+                        {...props}
+                      />
+                    ),
+                    ...CodeBlock,
+                  }}
                   className="markdown-content prose prose-sm sm:prose-base dark:prose-invert max-w-none">
                   {description}
                 </ReactMarkdown>
               </motion.div>
             ) : (
-              <motion.textarea
-                key="editor"
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                variants={editorVariants}
-                transition={transition}
-                value={description}
-                onChange={(e) => onDescriptionChange(e.target.value)}
-                className="absolute inset-0 w-full h-full bg-inherit text-black dark:text-white resize-none focus:outline-none font-mono p-6"
-                placeholder="Start writing here... (Supports Markdown)"
-              />
+              <div>
+                <motion.textarea
+                  key="editor"
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={editorVariants}
+                  transition={transition}
+                  value={description}
+                  onChange={(e) => onDescriptionChange(e.target.value)}
+                  className="absolute inset-0 w-full h-full bg-inherit text-black dark:text-white resize-none focus:outline-none font-mono p-6"
+                  placeholder="Start writing here... (Supports Markdown)"
+                />
+              </div>
             )}
           </div>
         </AnimatePresence>
