@@ -27,6 +27,7 @@ interface TodoSidebarProps {
   onCreateTodo: () => void;
   onTodoSelect: (todo: Todo) => void;
   onDeleteTodo: (id: string) => void;
+  onEditTodo: (todo: Todo) => void;
 }
 
 const TodoSidebar: React.FC<TodoSidebarProps> = ({
@@ -40,6 +41,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
   onCreateTodo,
   onTodoSelect,
   onDeleteTodo,
+  onEditTodo,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -160,7 +162,11 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
                 <DropdownMenuContent
                   align="end"
                   className="bg-background">
-                  <DropdownMenuItem onClick={() => onTodoSelect(todo)}>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditTodo(todo);
+                    }}>
                     <Pencil className="w-4 h-4 mr-2" /> Edit
                   </DropdownMenuItem>
                   <DropdownMenuItem
