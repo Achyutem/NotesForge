@@ -34,6 +34,7 @@ interface EditorProps {
   tags: string[];
   newTag: string;
   isSaving: boolean;
+  isPreview: boolean;
   onTitleChange: (title: string) => void;
   onDescriptionChange: (description: string) => void;
   onDeleteTodo: () => void;
@@ -41,6 +42,7 @@ interface EditorProps {
   onRemoveTag: (tag: string) => void;
   onNewTagChange: (tag: string) => void;
   onSave: () => void;
+  onTogglePreview: () => void;
 }
 
 const Editor: React.FC<EditorProps> = ({
@@ -50,6 +52,7 @@ const Editor: React.FC<EditorProps> = ({
   tags,
   newTag,
   isSaving,
+  isPreview,
   onTitleChange,
   onDescriptionChange,
   onDeleteTodo,
@@ -57,8 +60,8 @@ const Editor: React.FC<EditorProps> = ({
   onRemoveTag,
   onNewTagChange,
   onSave,
+  onTogglePreview,
 }) => {
-  const [isPreview, setIsPreview] = useState(true);
   const [lastUpdated, setLastUpdated] = useState("");
   const [isShortcutOpen, setIsShortcutOpen] = useState(false);
   const [isMarkdownOpen, setIsMarkdownOpen] = useState(false);
@@ -77,24 +80,27 @@ const Editor: React.FC<EditorProps> = ({
     exit: { opacity: 0, x: 20, scale: 0.98 },
   };
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.ctrlKey && e.key.toLowerCase() === "p") {
-      e.preventDefault();
-      setIsPreview((prev) => !prev);
-    }
-    if (e.ctrlKey && e.key.toLowerCase() === "d") {
-      e.preventDefault();
-      onDeleteTodo();
-    }
-    if (e.ctrlKey && e.key.toLowerCase() === "h") {
-      e.preventDefault();
-      setIsShortcutOpen((prev) => !prev);
-    }
-    if (e.ctrlKey && e.key.toLowerCase() === "m") {
-      e.preventDefault();
-      setIsMarkdownOpen((prev) => !prev);
-    }
-  }, []);
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        onTogglePreview();
+      }
+      if (e.ctrlKey && e.key.toLowerCase() === "d") {
+        e.preventDefault();
+        onDeleteTodo();
+      }
+      if (e.ctrlKey && e.key.toLowerCase() === "h") {
+        e.preventDefault();
+        setIsShortcutOpen((prev) => !prev);
+      }
+      if (e.ctrlKey && e.key.toLowerCase() === "m") {
+        e.preventDefault();
+        setIsMarkdownOpen((prev) => !prev);
+      }
+    },
+    [onTogglePreview, onDeleteTodo]
+  );
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
@@ -150,23 +156,12 @@ const Editor: React.FC<EditorProps> = ({
 
     updateLastUpdated();
     const interval = setInterval(updateLastUpdated, 60000);
-
     return () => clearInterval(interval);
   }, [todo.updatedAt, todo.createdAt]);
 
   const CodeBlock: Components = {
-    code({
-      inline,
-      className,
-      children,
-      ...props
-    }: {
-      inline?: boolean;
-      className?: string;
-      children?: React.ReactNode;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      [key: string]: any;
-    }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    code({ inline, className, children, ...props }: any) {
       const match = /language-(\w+)/.exec(className || "");
       return !inline && match ? (
         <SyntaxHighlighter
@@ -368,7 +363,7 @@ console.log("Hello, Markdown!");
       </div>
       <div className="relative flex-1 w-full overflow-hidden">
         <button
-          onClick={() => setIsPreview(!isPreview)}
+          onClick={onTogglePreview}
           title="Toggle Preview (Ctrl + P)"
           className="absolute top-2 right-4 text-primary text-sm hover:underline flex items-center gap-1 z-10">
           {isPreview ? (
@@ -426,7 +421,7 @@ console.log("Hello, Markdown!");
                 </ReactMarkdown>
               </motion.div>
             ) : (
-              <div>
+              <motion.div>
                 <motion.textarea
                   key="editor"
                   initial="hidden"
@@ -439,7 +434,7 @@ console.log("Hello, Markdown!");
                   className="absolute inset-0 w-full h-full bg-inherit text-black dark:text-white resize-none focus:outline-none font-mono p-6"
                   placeholder="Start writing here... (Supports Markdown)"
                 />
-              </div>
+              </motion.div>
             )}
           </div>
         </AnimatePresence>
