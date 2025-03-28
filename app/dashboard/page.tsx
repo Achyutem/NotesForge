@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import TodoSidebar from "../(components)/todoSidebar";
 import Editor from "../(components)/editor";
@@ -11,19 +10,171 @@ import ImportTodos from "../(components)/import";
 import { logout } from "../utils/logout";
 import { LogOut } from "lucide-react";
 
-const Todos = () => {
+const useTodoManager = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [editTags, setEditTags] = useState<string[]>([]);
+
+  const fetchTodos = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get<ApiResponse>("/api/todos", {
+        withCredentials: true,
+      });
+
+      if (response.status === 200 && response.data.todos) {
+        const fetchedTodos = Array.isArray(response.data.todos)
+          ? response.data.todos
+          : [];
+        setTodos(fetchedTodos);
+      } else {
+        setError("Failed to fetch todos.");
+      }
+    } catch (err) {
+      setError("Failed to fetch todos.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const createTodo = async () => {
+    const newTodo: Todo = {
+      id: "",
+      title: "",
+      description: "",
+      tags: [],
+      userId: 1,
+      createdAt: new Date().toLocaleString(),
+      updatedAt: new Date().toLocaleString(),
+    };
+    return newTodo;
+  };
+
+  const saveTodo = async (
+    todo: Todo,
+    editTitle: string,
+    editDescription: string,
+    editTags: string[]
+  ) => {
+    try {
+      let response: ApiResponse;
+
+      if (todo.id) {
+        const { data, status } = await axios.patch(`/api/todos?id=${todo.id}`, {
+          title: editTitle || "Untitled",
+          description: editDescription,
+          tags: editTags,
+        });
+        response = { ...data, status };
+      } else {
+        const { data, status } = await axios.post("/api/todos", {
+          title: editTitle || "Untitled",
+          description: editDescription,
+          tags: editTags,
+        });
+        response = { ...data, status };
+      }
+
+      return response;
+    } catch (err) {
+      throw new Error("Failed to save todo.");
+    }
+  };
+
+  const deleteTodo = async (id: string) => {
+    try {
+      const response = await axios.delete(`/api/todos?id=${id}`);
+      return response.status === 200;
+    } catch (err) {
+      throw new Error("Failed to delete todo.");
+    }
+  };
+
+  return {
+    todos,
+    loading,
+    error,
+    setError,
+    fetchTodos,
+    createTodo,
+    saveTodo,
+    deleteTodo,
+  };
+};
+
+const useTodoEditorState = (initialTodo?: Todo) => {
+  const [selectedTodo, setSelectedTodo] = useState<Todo | null>(
+    initialTodo || null
+  );
+  const [editTitle, setEditTitle] = useState(initialTodo?.title || "");
+  const [editDescription, setEditDescription] = useState(
+    initialTodo?.description || ""
+  );
+  const [editTags, setEditTags] = useState<string[]>(initialTodo?.tags || []);
   const [newTag, setNewTag] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isPreview, setIsPreview] = useState(true);
 
-  // Keyboard shortcuts
+  const resetEditorState = useCallback((todo?: Todo) => {
+    setSelectedTodo(todo || null);
+    setEditTitle(todo?.title || "");
+    setEditDescription(todo?.description || "");
+    setEditTags(todo?.tags || []);
+    setNewTag("");
+    setIsPreview(todo ? true : false);
+  }, []);
+
+  return {
+    selectedTodo,
+    setSelectedTodo,
+    editTitle,
+    setEditTitle,
+    editDescription,
+    setEditDescription,
+    editTags,
+    setEditTags,
+    newTag,
+    setNewTag,
+    isSaving,
+    setIsSaving,
+    isPreview,
+    setIsPreview,
+    resetEditorState,
+  };
+};
+
+const Todos: React.FC = () => {
+  const {
+    todos,
+    loading,
+    error,
+    setError,
+    fetchTodos,
+    createTodo,
+    saveTodo,
+    deleteTodo,
+  } = useTodoManager();
+
+  const {
+    selectedTodo,
+    setSelectedTodo,
+    editTitle,
+    setEditTitle,
+    editDescription,
+    setEditDescription,
+    editTags,
+    setEditTags,
+    newTag,
+    setNewTag,
+    isSaving,
+    setIsSaving,
+    isPreview,
+    setIsPreview,
+    resetEditorState,
+  } = useTodoEditorState();
+
+  const [searchQuery, setSearchQuery] = useState("");
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -32,7 +183,7 @@ const Todos = () => {
         e.key.toLowerCase() === "n"
       ) {
         e.preventDefault();
-        createNewTodo();
+        handleCreateNewTodo();
         return;
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") {
@@ -45,12 +196,12 @@ const Todos = () => {
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
-        saveCurrentTodo();
+        handleSaveTodo();
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") {
         e.preventDefault();
         if (selectedTodo?.id) {
-          deleteTodo(selectedTodo.id);
+          handleDeleteTodo(selectedTodo.id);
         }
       }
     };
@@ -59,97 +210,15 @@ const Todos = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedTodo, editTitle, editDescription, editTags]);
 
-  const fetchTodos = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get<ApiResponse>("/api/todos", {
-        withCredentials: true, // Ensure cookies are sent
-      });
-
-      if (response.status === 200 && response.data.todos) {
-        const fetchedTodos = Array.isArray(response.data.todos)
-          ? response.data.todos
-          : [];
-        setTodos(fetchedTodos);
-
-        if (!selectedTodo && fetchedTodos.length > 0) {
-          setSelectedTodo(fetchedTodos[0]);
-          setEditTitle(fetchedTodos[0].title);
-          setEditDescription(fetchedTodos[0].description);
-          setEditTags(fetchedTodos[0].tags || []);
-        }
-      } else {
-        setError("Failed to fetch todos.");
-      }
-    } catch (err) {
-      setError("Failed to fetch todos.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     fetchTodos();
-  }, []);
+  }, [fetchTodos]);
 
-  const saveCurrentTodo = async () => {
-    if (
-      !selectedTodo ||
-      (!editTitle.trim() && !editDescription.trim()) ||
-      isSaving
-    )
-      return;
-
-    setIsSaving(true);
-    try {
-      let response: ApiResponse;
-
-      if (selectedTodo.id) {
-        const { data, status } = await axios.patch(
-          `/api/todos?id=${selectedTodo.id}`,
-          {
-            title: editTitle || "Untitled",
-            description: editDescription,
-            tags: editTags,
-          }
-        );
-        response = { ...data, status };
-      } else {
-        const { data, status } = await axios.post("/api/todos", {
-          title: editTitle || "Untitled",
-          description: editDescription,
-          tags: editTags,
-        });
-        response = { ...data, status };
-      }
-
-      if (response.status === 200 || response.status === 201) {
-        if (!selectedTodo.id && response.todo) {
-          setSelectedTodo(response.todo);
-        }
-        await fetchTodos();
-      }
-    } catch (err) {
-      setError("Failed to save todo.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const createNewTodo = () => {
-    const newTodo = {
-      id: "",
-      title: "",
-      description: "",
-      tags: [],
-      userId: 1,
-      createdAt: new Date().toLocaleString(),
-      updatedAt: new Date().toLocaleString(),
-    };
+  const handleCreateNewTodo = async () => {
+    const newTodo = await createTodo();
     setSelectedTodo(newTodo);
-    setEditTitle("");
-    setEditDescription("");
-    setEditTags([]);
+    resetEditorState(newTodo);
+    setIsPreview(false);
 
     setTimeout(() => {
       const titleInput = document.getElementById(
@@ -159,28 +228,61 @@ const Todos = () => {
     }, 0);
   };
 
-  const deleteTodo = async (id: string) => {
+  const handleSaveTodo = async () => {
+    if (
+      !selectedTodo ||
+      (!editTitle.trim() && !editDescription.trim()) ||
+      isSaving
+    )
+      return;
+
+    setIsSaving(true);
     try {
-      const response = await axios.delete(`/api/todos?id=${id}`);
-      if (response.status === 200) {
+      const response = await saveTodo(
+        selectedTodo,
+        editTitle,
+        editDescription,
+        editTags
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        if (!selectedTodo.id && response.todo) {
+          setSelectedTodo(response.todo);
+        }
         await fetchTodos();
-        setSelectedTodo(null);
-        setEditTitle("");
-        setEditDescription("");
-        setEditTags([]);
-      } else {
-        setError("Failed to delete todo.");
+        setIsPreview(true);
+      }
+    } catch (err) {
+      setError("Failed to save todo.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const isDeleting = useRef(false);
+
+  const handleDeleteTodo = async (id: string) => {
+    if (isDeleting.current) return;
+
+    isDeleting.current = true;
+
+    try {
+      const isDeleted = await deleteTodo(id);
+      if (isDeleted) {
+        resetEditorState();
+        await fetchTodos();
       }
     } catch (err) {
       setError("Failed to delete todo.");
+    } finally {
+      isDeleting.current = false;
     }
   };
 
   const handleTodoSelect = (todo: Todo) => {
     setSelectedTodo(todo);
-    setEditTitle(todo.title);
-    setEditDescription(todo.description);
-    setEditTags(todo.tags || []);
+    resetEditorState(todo);
+    setIsPreview(true);
   };
 
   const filteredTodos = todos.filter(
@@ -191,6 +293,12 @@ const Todos = () => {
         tag.toLowerCase().includes(searchQuery.toLowerCase())
       )
   );
+
+  const hasUnsavedChanges = selectedTodo
+    ? editTitle !== selectedTodo.title ||
+      editDescription !== selectedTodo.description ||
+      JSON.stringify(editTags) !== JSON.stringify(selectedTodo.tags)
+    : false;
 
   if (loading) {
     return (
@@ -216,16 +324,11 @@ const Todos = () => {
         selectedTodo={selectedTodo}
         unsavedTitle={editTitle}
         unsavedTags={editTags}
-        hasUnsavedChanges={
-          selectedTodo &&
-          (editTitle !== selectedTodo.title ||
-            editDescription !== selectedTodo.description ||
-            JSON.stringify(editTags) !== JSON.stringify(selectedTodo.tags))
-        }
+        hasUnsavedChanges={hasUnsavedChanges}
         onSearchChange={setSearchQuery}
-        onCreateTodo={createNewTodo}
+        onCreateTodo={handleCreateNewTodo}
         onTodoSelect={handleTodoSelect}
-        onDeleteTodo={deleteTodo}
+        onDeleteTodo={handleDeleteTodo}
       />
       {selectedTodo ? (
         <Editor
@@ -234,9 +337,10 @@ const Todos = () => {
           description={editDescription}
           tags={editTags}
           newTag={newTag}
+          isPreview={isPreview}
           onTitleChange={setEditTitle}
           onDescriptionChange={setEditDescription}
-          onDeleteTodo={() => deleteTodo(selectedTodo.id)}
+          onDeleteTodo={() => handleDeleteTodo(selectedTodo.id)}
           onAddTag={(tag) => {
             if (!editTags.includes(tag)) {
               setEditTags([...editTags, tag]);
@@ -247,8 +351,9 @@ const Todos = () => {
             setEditTags(editTags.filter((t) => t !== tag));
           }}
           onNewTagChange={setNewTag}
-          onSave={saveCurrentTodo}
+          onSave={handleSaveTodo}
           isSaving={isSaving}
+          onTogglePreview={() => setIsPreview(!isPreview)}
         />
       ) : (
         <div className="flex-1 flex flex-col h-screen w-screen">
