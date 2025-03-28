@@ -112,8 +112,8 @@ const useTodoEditorState = (initialTodo?: Todo) => {
   );
   const [editTags, setEditTags] = useState<string[]>(initialTodo?.tags || []);
   const [newTag, setNewTag] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
-  const [isPreview, setIsPreview] = useState(true);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isPreview, setIsPreview] = useState<boolean>(true);
 
   const resetEditorState = useCallback((todo?: Todo) => {
     setSelectedTodo(todo || null);
@@ -219,6 +219,7 @@ const Todos: React.FC = () => {
     setSelectedTodo(newTodo);
     resetEditorState(newTodo);
     setIsPreview(false);
+    console.log("createTriggered", isPreview);
 
     setTimeout(() => {
       const titleInput = document.getElementById(
@@ -285,6 +286,12 @@ const Todos: React.FC = () => {
     setIsPreview(true);
   };
 
+  const handleEditTodo = (todo: Todo) => {
+    setSelectedTodo(todo);
+    resetEditorState(todo);
+    setIsPreview(false);
+  };
+
   const filteredTodos = todos.filter(
     (todo) =>
       todo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -329,6 +336,7 @@ const Todos: React.FC = () => {
         onCreateTodo={handleCreateNewTodo}
         onTodoSelect={handleTodoSelect}
         onDeleteTodo={handleDeleteTodo}
+        onEditTodo={handleEditTodo}
       />
       {selectedTodo ? (
         <Editor
