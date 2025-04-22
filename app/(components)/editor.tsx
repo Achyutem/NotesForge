@@ -169,13 +169,12 @@ const Editor: React.FC<EditorProps> = ({
           language={match[1]}
           wrapLongLines={true}
           PreTag="div"
-          {...props}>
+          {...props}
+        >
           {String(children).replace(/\n$/, "")}
         </SyntaxHighlighter>
       ) : (
-        <code
-          className={className}
-          {...props}>
+        <code className={className} {...props}>
           {children}
         </code>
       );
@@ -199,14 +198,16 @@ const Editor: React.FC<EditorProps> = ({
             disabled={isSaving}
             className="p-2 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-1"
             title="Save (Ctrl + S)"
-            aria-label="Save">
+            aria-label="Save"
+          >
             <Save className="w-5 h-5" />
           </button>
           {todo.id && (
             <button
               onClick={onDeleteTodo}
               className="p-2 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-1"
-              title="Delete (Ctrl + D)">
+              title="Delete (Ctrl + D)"
+            >
               <Trash className="w-5 h-5" />
             </button>
           )}
@@ -232,14 +233,12 @@ const Editor: React.FC<EditorProps> = ({
                 console.error("Error exporting todos:", error);
               }
             }}
-            title="Export Todos">
+            title="Export Todos"
+          >
             <Upload className="w-5 h-5" />
           </button>
           <Theme />
-          <button
-            onClick={onSave}
-            title="Logout"
-            className="pl-2">
+          <button onClick={onSave} title="Logout" className="pl-2">
             <LogOut
               onClick={logout}
               className="text-red-500 ml-1 hover:animate-bounce"
@@ -253,11 +252,13 @@ const Editor: React.FC<EditorProps> = ({
           {tags.map((tag) => (
             <span
               key={tag}
-              className="bg-gray-200 font-semibold dark:bg-slate-800 text-sm px-2 py-1 rounded-full flex items-center gap-1">
+              className="bg-gray-200 font-semibold dark:bg-slate-800 text-sm px-2 py-1 rounded-full flex items-center gap-1"
+            >
               <span className="text-primary">{tag}</span>
               <button
                 onClick={() => onRemoveTag(tag)}
-                className="text-gray-500 hover:text-red-500 p-0.5">
+                className="text-gray-500 hover:text-red-500 p-0.5"
+              >
                 <X className="w-3 h-3" />
               </button>
             </span>
@@ -274,13 +275,12 @@ const Editor: React.FC<EditorProps> = ({
         <div className="px-2 py-2 text-sm flex items-center gap-2 dark:text-gray-200 text-gray-700">
           <Clock className="w-4 h-4 text-primary inline-block" />
           Last Updated: <strong>{lastUpdated}</strong>
-          <Popover
-            open={isMarkdownOpen}
-            onOpenChange={setIsMarkdownOpen}>
+          <Popover open={isMarkdownOpen} onOpenChange={setIsMarkdownOpen}>
             <PopoverTrigger asChild>
               <motion.button
                 whileTap={{ scale: 0.9 }}
-                className="py-2 px-1 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
+                className="py-2 px-1 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+              >
                 <HelpCircle className="w-5 h-5" />
               </motion.button>
             </PopoverTrigger>
@@ -290,7 +290,8 @@ const Editor: React.FC<EditorProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="w-80 p-4 text-sm bg-background border border-gray-300 dark:border-gray-700 rounded-xl shadow-xl">
+                className="w-80 p-4 text-sm bg-background border border-gray-300 dark:border-gray-700 rounded-xl shadow-xl"
+              >
                 <h3 className="font-semibold text-lg mb-3 text-primary flex items-center gap-2">
                   Markdown Guide
                 </h3>
@@ -328,13 +329,12 @@ console.log("Hello, Markdown!");
               </motion.div>
             </PopoverContent>
           </Popover>
-          <Popover
-            open={isShortcutOpen}
-            onOpenChange={setIsShortcutOpen}>
+          <Popover open={isShortcutOpen} onOpenChange={setIsShortcutOpen}>
             <PopoverTrigger asChild>
               <motion.button
                 whileTap={{ scale: 0.9 }}
-                className="py-2 px-1 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
+                className="py-2 px-1 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+              >
                 <Keyboard className="w-5 h-5" />
               </motion.button>
             </PopoverTrigger>
@@ -344,7 +344,8 @@ console.log("Hello, Markdown!");
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="w-80 p-4 text-sm bg-background border border-gray-300 dark:border-gray-700 rounded-xl shadow-xl">
+                className="w-80 p-4 text-sm bg-background border border-gray-300 dark:border-gray-700 rounded-xl shadow-xl"
+              >
                 <h3 className="font-semibold text-lg mb-3 text-primary">
                   Keyboard Shortcuts
                 </h3>
@@ -365,7 +366,8 @@ console.log("Hello, Markdown!");
         <button
           onClick={onTogglePreview}
           title="Toggle Preview (Ctrl + P)"
-          className="absolute top-2 right-4 text-primary text-sm hover:underline flex items-center gap-1 z-10">
+          className="absolute top-2 right-4 text-primary text-sm hover:underline flex items-center gap-1 z-10"
+        >
           {isPreview ? (
             <>
               <Edit3 className="w-4 h-4" /> Edit
@@ -386,11 +388,13 @@ console.log("Hello, Markdown!");
                 exit="exit"
                 variants={previewVariants}
                 transition={transition}
-                className="absolute inset-0 h-full w-full overflow-auto bg-inherit p-6">
+                className="absolute inset-0 h-full w-full overflow-auto bg-inherit p-6"
+              >
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkBreaks]}
                   rehypePlugins={[rehypeRaw]}
                   components={{
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     li: ({ node, children, ...props }: any) => {
                       const isTaskList = node.children[0]?.tagName === "input";
                       return (
@@ -400,7 +404,8 @@ console.log("Hello, Markdown!");
                             isTaskList
                               ? "list-none flex items-center gap-2"
                               : "list-disc"
-                          }>
+                          }
+                        >
                           {children}
                         </li>
                       );
@@ -416,7 +421,8 @@ console.log("Hello, Markdown!");
                     ),
                     ...CodeBlock,
                   }}
-                  className="markdown-content prose prose-sm sm:prose-base dark:prose-invert max-w-none">
+                  className="markdown-content prose prose-sm sm:prose-base dark:prose-invert max-w-none"
+                >
                   {description}
                 </ReactMarkdown>
               </motion.div>
