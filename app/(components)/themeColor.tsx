@@ -47,7 +47,17 @@ const availableThemeColors = [
   },
 ];
 
-export function Theme() {
+type ThemeProps = {
+  variant?:
+    | "default"
+    | "secondary"
+    | "destructive"
+    | "outline"
+    | "ghost"
+    | "link";
+};
+
+export function Theme({ variant = "ghost" }: ThemeProps) {
   const { theme, setTheme } = useTheme();
   const { themeColor, setThemeColor } = useThemeContext();
 
@@ -58,19 +68,21 @@ export function Theme() {
   return (
     <div className="relative flex items-center space-x-1">
       <Button
-        variant="outline"
+        variant={variant}
         size="icon"
         aria-label="Toggle theme mode"
         title="Toggle theme mode"
         onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-        className="relative mr-1 overflow-hidden flex items-center justify-center">
+        className="relative mr-1 overflow-hidden flex items-center justify-center"
+      >
         <motion.div
           key={theme}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          className="absolute">
+          className="absolute"
+        >
           {theme === "dark" ? (
             <Moon className="text-primary h-[1.2rem] w-[1.2rem]" />
           ) : (
@@ -81,13 +93,15 @@ export function Theme() {
 
       <Select
         onValueChange={(value) => setThemeColor(value as ThemeColors)}
-        defaultValue={themeColor}>
+        defaultValue={themeColor}
+      >
         <SelectTrigger
           className={cn(
             "w-6 h-6 rounded-full flex items-center justify-center border-none focus:ring-0 shadow-sm",
             "hover:shadow-md hover:scale-110 hover:ring-2 hover:ring-offset-2",
             bgColor
-          )}>
+          )}
+        >
           <ChevronDown className="text-white w-2.5 h-2.5 transition-transform duration-200" />
         </SelectTrigger>
         <SelectContent>
@@ -96,13 +110,15 @@ export function Theme() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="border-muted p-2 shadow-lg bg-background rounded-lg">
+            className="shadow-none border-none p-2 bg-background rounded-lg"
+          >
             <div className="flex space-x-2 px-2">
               {availableThemeColors.map(({ name, light, dark }) => (
                 <SelectItem
                   key={name}
                   value={name}
-                  className="p-0 m-0 border-none">
+                  className="p-0 m-0 border-none"
+                >
                   <motion.div
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}

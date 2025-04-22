@@ -208,6 +208,7 @@ const Todos: React.FC = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTodo, editTitle, editDescription, editTags]);
 
   useEffect(() => {
@@ -369,14 +370,9 @@ const Todos: React.FC = () => {
             <div></div>
             <div className="flex items-center gap-3">
               <ImportTodos />
-              <Theme />
-              <button
-                className="mr-1"
-                title="Logout">
-                <LogOut
-                  onClick={logout}
-                  className="text-red-500"
-                />
+              <Theme variant="outline" />
+              <button className="mr-1" title="Logout">
+                <LogOut onClick={logout} className="text-red-500" />
               </button>
             </div>
           </div>
