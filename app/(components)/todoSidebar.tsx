@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+"use client";
+
+import React, { useEffect, useState, useRef } from "react";
 import {
   Plus,
   Search,
@@ -15,6 +17,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface TodoSidebarProps {
   todos: Todo[];
@@ -44,75 +48,85 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
   onEditTodo,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(320);
+  const resizerRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
         e.preventDefault();
         toggleSidebar();
-        return;
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  });
+  }, []);
 
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (resizerRef.current && sidebarRef.current && e.buttons === 1) {
+        const newWidth =
+          e.clientX - sidebarRef.current.getBoundingClientRect().left;
+        setSidebarWidth(Math.max(200, Math.min(newWidth, 600)));
+      }
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
 
-  if (isCollapsed) {
-    return (
-      <div className="w-12 border-r bg-background border-gray-300 flex flex-col items-center py-4">
-        <button
-          onClick={toggleSidebar}
-          className="p-1 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-2"
-          title="Expand Sidebar">
-          <ChevronsRight className="w-6 h-6" />
-        </button>
-        <button
-          onClick={onCreateTodo}
-          className="p-1 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-2"
-          title="New Note (ctrl+shift+n)">
-          <Plus className="w-5 h-5" />
-        </button>
-      </div>
-    );
-  }
+  const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
   return (
-    <div className="w-72 bg-background border-r border-gray-300 flex flex-col h-auto">
-      <div className="p-4 border-b border-gray-300 sticky top-0 bg-background z-10">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-primary font-bold">NotesForge</h1>
-          <div className="flex items-center">
-            <button
-              onClick={toggleSidebar}
-              className="p-1 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-2"
-              title="Collapse Sidebar (Ctrl+B)">
+    <aside
+      ref={sidebarRef}
+      style={{ width: isCollapsed ? 56 : sidebarWidth }}
+      className="transition-all duration-300 border-r bg-background h-full flex flex-col relative"
+    >
+      <div className="flex items-center justify-between px-4 py-3 border-b sticky top-0 bg-background z-10">
+        {!isCollapsed && (
+          <h1 className="text-lg font-bold text-primary">NotesForge</h1>
+        )}
+        <div className="flex items-center gap-2">
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={toggleSidebar}
+            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar (Ctrl+B)"}
+          >
+            {isCollapsed ? (
+              <ChevronsRight className="w-5 h-5" />
+            ) : (
               <ChevronsLeft className="w-5 h-5" />
-            </button>
-            <button
+            )}
+          </Button>
+          {!isCollapsed && (
+            <Button
+              size="icon"
+              variant="ghost"
               onClick={onCreateTodo}
-              className="p-1 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-2"
-              title="New Note (ctrl+shift+n)">
-              <Plus className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-        <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2">
-          <Search className="w-4 h-4 text-primary mr-2" />
-          <input
-            id="search-input"
-            type="text"
-            placeholder="Search notes... (ctrl + f)"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="bg-transparent text-black dark:text-white text-sm w-full focus:outline-none placeholder:font-semibold placeholder:text-gray-500 dark:placeholder:text-gray-400"
-          />
+              title="New Note (ctrl+shift+n)"
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </div>
+
+      {!isCollapsed && (
+        <div className="px-4 py-2">
+          <div className="relative rounded-md overflow-hidden shadow-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="search-input"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Search notes... (ctrl + f)"
+              className="pl-9 text-sm bg-muted focus:ring-2 focus:ring-primary"
+            />
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto">
         {todos.map((todo) => {
@@ -127,54 +141,56 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
           return (
             <div
               key={todo.id}
-              className={`p-4 cursor-pointer border-b border-gray-300 dark:border-gray-700 flex justify-between items-center ${
-                isSelected
-                  ? "bg-gray-200 dark:bg-slate-900"
-                  : "hover:bg-gray-200 dark:hover:bg-gray-800"
+              onClick={() => onTodoSelect(todo)}
+              className={`px-4 py-3 flex items-start justify-between cursor-pointer transition-colors ${
+                isSelected ? "bg-muted" : "hover:bg-muted/80"
               }`}
-              onClick={() => onTodoSelect(todo)}>
-              <div className="flex-1">
-                <h3 className="text-primary dark:text-white font-medium truncate">
+            >
+              <div className="flex-1 overflow-hidden">
+                <h3 className="text-sm font-medium truncate text-primary">
                   {displayTitle}
                 </h3>
                 {displayTags && displayTags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-1">
+                  <div className="flex flex-wrap gap-1 mt-1">
                     {displayTags.map((tag) => (
                       <span
                         key={tag}
-                        className="font-semibold inline-block px-2 py-0.5 bg-opacity-20 text-primary text-xs rounded-full dark:bg-slate-800 bg-gray-400">
+                        className="bg-muted text-primary text-xs font-semibold px-2 py-0.5 rounded-full"
+                      >
                         {tag}
                       </span>
                     ))}
                   </div>
                 )}
-                <p className="text-black dark:text-white text-sm truncate mt-1">
-                  {todo.description.slice(0, 30)}
-                </p>
               </div>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 p-2">
-                    <MoreVertical className="w-5 h-5" />
-                  </button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="text-muted-foreground"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="bg-background">
+                <DropdownMenuContent align="end">
                   <DropdownMenuItem
                     onClick={(e) => {
                       e.stopPropagation();
                       onEditTodo(todo);
-                    }}>
+                    }}
+                  >
                     <Pencil className="w-4 h-4 mr-2" /> Edit
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    className="text-red-500"
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteTodo(todo.id);
-                    }}>
+                    }}
+                    className="text-red-600"
+                  >
                     <Trash className="w-4 h-4 mr-2" /> Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -183,7 +199,12 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
           );
         })}
       </div>
-    </div>
+
+      <div
+        ref={resizerRef}
+        className="absolute top-0 right-0 w-2 cursor-ew-resize h-full z-20"
+      />
+    </aside>
   );
 };
 
