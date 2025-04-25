@@ -28,18 +28,30 @@ const ShortcutsPopover: React.FC<Props> = ({ isOpen, onToggle }) => (
 				animate={{ opacity: 1, y: 0 }}
 				exit={{ opacity: 0, y: -10 }}
 				transition={{ duration: 0.2 }}
-				className="w-80 p-4 text-sm bg-background border border-gray-300 dark:border-gray-700 rounded-xl shadow-xl"
+				className="w-72 sm:w-80 md:w-[16rem] lg:w-[20rem] p-4 text-sm sm:text-sm md:text-base bg-background border border-gray-300 dark:border-gray-700 rounded-xl shadow-xl"
 			>
-				<h3 className="font-semibold text-lg mb-3 text-primary">
+				<h3 className="font-semibold text-base sm:text-lg md:text-xl mb-3 text-primary">
 					Keyboard Shortcuts
 				</h3>
-				<ul className="space-y-2 text-sm font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded-md">
-					<li>Ctrl + Shift + N → New Note</li>
-					<li>Ctrl + D → Delete Note</li>
-					<li>Ctrl + B → Collapse/Expand Sidebar</li>
-					<li>Ctrl + P → Preview</li>
-					<li>Ctrl + M → View Markdown Cheatsheet</li>
-					<li>Ctrl + H → View Shortcuts</li>
+				<ul className="space-y-2 font-mono text-xs sm:text-sm md:text-base bg-gray-100 dark:bg-gray-800 p-2 rounded-md">
+					<li>
+						<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd> → New Note
+					</li>
+					<li>
+						<kbd>Ctrl</kbd> + <kbd>D</kbd> → Delete Note
+					</li>
+					<li>
+						<kbd>Ctrl</kbd> + <kbd>B</kbd> → Toggle Sidebar
+					</li>
+					<li>
+						<kbd>Ctrl</kbd> + <kbd>P</kbd> → Preview
+					</li>
+					<li>
+						<kbd>Ctrl</kbd> + <kbd>M</kbd> → View Markdown Cheatsheet
+					</li>
+					<li>
+						<kbd>Ctrl</kbd> + <kbd>H</kbd> → View Shortcuts
+					</li>
 				</ul>
 			</motion.div>
 		</PopoverContent>
