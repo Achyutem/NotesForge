@@ -10,7 +10,6 @@ import {
 	Pencil,
 	Trash,
 } from "lucide-react";
-import { Todo } from "../utils/types";
 import {
 	DropdownMenu,
 	DropdownMenuTrigger,
@@ -20,20 +19,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-
-interface TodoSidebarProps {
-	todos: Todo[];
-	searchQuery: string;
-	selectedTodo?: Todo | null;
-	unsavedTitle?: string;
-	unsavedTags?: string[];
-	hasUnsavedChanges?: boolean | null;
-	onSearchChange: (query: string) => void;
-	onCreateTodo: () => void;
-	onTodoSelect: (todo: Todo) => void;
-	onDeleteTodo: (id: string) => void;
-	onEditTodo: (todo: Todo) => void;
-}
+import { useShortcuts } from "../hooks/useShortcuts";
+import { TodoSidebarProps } from "../utils/types";
 
 const TodoSidebar: React.FC<TodoSidebarProps> = ({
 	todos,
@@ -54,16 +41,9 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
 	const sidebarRef = useRef<HTMLDivElement>(null);
 	const [isResizing, setIsResizing] = useState(false);
 
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
-				e.preventDefault();
-				toggleSidebar();
-			}
-		};
-		window.addEventListener("keydown", handleKeyDown);
-		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, []);
+	useShortcuts({
+		toggleSidebar: () => setIsCollapsed((prev) => !prev),
+	});
 
 	useEffect(() => {
 		const handleMouseMove = (e: MouseEvent) => {

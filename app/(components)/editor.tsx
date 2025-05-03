@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -15,31 +15,14 @@ import {
 	Edit3,
 	Upload,
 } from "lucide-react";
-import { Todo } from "../utils/types";
 import { Theme } from "./themeColor";
 import { logout } from "../utils/logout";
 import MarkdownGuidePopover from "./markdownGuide";
 import CodeBlock from "./codeBlock";
 import ShortcutsPopover from "./shortcutPopover";
 import { useLastUpdated } from "../hooks/useLastUpdated";
-
-interface EditorProps {
-	todo: Todo;
-	title: string;
-	description: string;
-	tags: string[];
-	newTag: string;
-	isSaving: boolean;
-	isPreview: boolean;
-	onTitleChange: (title: string) => void;
-	onDescriptionChange: (description: string) => void;
-	onDeleteTodo: () => void;
-	onAddTag: (tag: string) => void;
-	onRemoveTag: (tag: string) => void;
-	onNewTagChange: (tag: string) => void;
-	onSave: () => void;
-	onTogglePreview: () => void;
-}
+import { useShortcuts } from "../hooks/useShortcuts";
+import { EditorProps } from "../utils/types";
 
 const Editor: React.FC<EditorProps> = ({
 	todo,
@@ -64,6 +47,13 @@ const Editor: React.FC<EditorProps> = ({
 
 	const transition = { duration: 0.25, ease: "easeInOut" };
 
+	useShortcuts({
+		onTogglePreview,
+		onDeleteTodo,
+		setIsShortcutOpen,
+		setIsMarkdownOpen,
+	});
+
 	const editorVariants = {
 		hidden: { opacity: 0, x: -20, scale: 0.98 },
 		visible: { opacity: 1, x: 0, scale: 1 },
@@ -75,32 +65,6 @@ const Editor: React.FC<EditorProps> = ({
 		visible: { opacity: 1, x: 0, scale: 1 },
 		exit: { opacity: 0, x: 20, scale: 0.98 },
 	};
-
-	const handleKeyDown = useCallback(
-		(e: KeyboardEvent) => {
-			if (!e.ctrlKey) return;
-
-			const key = e.key.toLowerCase();
-			const actions: Record<string, () => void> = {
-				p: onTogglePreview,
-				d: onDeleteTodo,
-				h: () => setIsShortcutOpen((prev) => !prev),
-				m: () => setIsMarkdownOpen((prev) => !prev),
-			};
-
-			const action = actions[key];
-			if (action) {
-				e.preventDefault();
-				action();
-			}
-		},
-		[onTogglePreview, onDeleteTodo]
-	);
-
-	useEffect(() => {
-		document.addEventListener("keydown", handleKeyDown);
-		return () => document.removeEventListener("keydown", handleKeyDown);
-	}, [handleKeyDown]);
 
 	const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter" && newTag.trim()) {
@@ -280,6 +244,7 @@ const Editor: React.FC<EditorProps> = ({
 						) : (
 							<motion.div>
 								<motion.textarea
+									id="text-description"
 									key="editor"
 									initial="hidden"
 									animate="visible"
