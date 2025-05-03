@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useThemeContext } from "../context/themeProvider";
 import { cn } from "@/lib/utils";
+import { ThemeColors } from "../utils/types";
 
 const availableThemeColors = [
 	{
