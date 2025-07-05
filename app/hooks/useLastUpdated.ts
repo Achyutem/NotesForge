@@ -8,7 +8,12 @@ export function useLastUpdated(updatedAt?: string, createdAt?: string) {
 			const dateRef = updatedAt || createdAt;
 			if (!dateRef) return;
 
-			const updatedTime = new Date(dateRef);
+			// --- THIS IS THE FIX ---
+			// Force the browser to parse the date string as UTC
+			const updatedTime = new Date(
+				dateRef.endsWith("Z") ? dateRef : dateRef + "Z"
+			);
+
 			const now = new Date();
 			const diffInMs = now.getTime() - updatedTime.getTime();
 			const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
