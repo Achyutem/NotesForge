@@ -1,16 +1,20 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import TodoSidebar from "../(components)/todoSidebar";
 import Editor from "../(components)/editor";
-import { Theme } from "../(components)/themeColor";
-import ImportTodos from "../(components)/import";
-import { logout } from "../utils/logout";
-import { LogOut } from "lucide-react";
+import { FilePlus2, Pencil } from "lucide-react";
 import { useTodoManager } from "../hooks/useTodoManager";
 import { useTodoEditorState } from "../hooks/useTodoEdtitorState";
 import { useShortcuts } from "../hooks/useShortcuts";
 import { useTodoHandlers } from "../hooks/useTodoHandler";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { Theme } from "../(components)/themeColor";
 
 const Todos: React.FC = () => {
 	const {
@@ -98,22 +102,22 @@ const Todos: React.FC = () => {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-white flex items-center justify-center text-gray-600">
-				Loading...
+			<div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">
+				Loading your notes...
 			</div>
 		);
 	}
 
 	if (error) {
 		return (
-			<div className="min-h-screen bg-white flex items-center justify-center text-red-500">
-				{error}
+			<div className="min-h-screen bg-background flex items-center justify-center text-destructive">
+				Error: {error}
 			</div>
 		);
 	}
 
 	return (
-		<div className="flex h-screen bg-white">
+		<div className="flex h-screen bg-background text-foreground">
 			<TodoSidebar
 				todos={filteredTodos}
 				searchQuery={searchQuery}
@@ -127,48 +131,66 @@ const Todos: React.FC = () => {
 				onDeleteTodo={handleDeleteTodo}
 				onEditTodo={handleEditTodo}
 			/>
-			{selectedTodo ? (
-				<Editor
-					todo={selectedTodo}
-					title={editTitle}
-					description={editDescription}
-					tags={editTags}
-					newTag={newTag}
-					isPreview={isPreview}
-					onTitleChange={setEditTitle}
-					onDescriptionChange={setEditDescription}
-					onDeleteTodo={() => handleDeleteTodo(selectedTodo.id)}
-					onAddTag={(tag) => {
-						if (!editTags.includes(tag)) {
-							setEditTags([...editTags, tag]);
-							setNewTag("");
-						}
-					}}
-					onRemoveTag={(tag) => {
-						setEditTags(editTags.filter((t) => t !== tag));
-					}}
-					onNewTagChange={setNewTag}
-					onSave={handleSaveTodo}
-					isSaving={isSaving}
-					onTogglePreview={() => setIsPreview(!isPreview)}
-				/>
-			) : (
-				<div className="flex-1 flex flex-col h-screen w-screen">
-					<div className="sticky top-0 bg-background px-4 py-3 md:p-6 flex justify-between items-center">
-						<div></div>
-						<div className="flex items-center gap-3">
-							<ImportTodos />
+			<main className="flex-1 flex flex-col h-screen">
+				{selectedTodo ? (
+					<Editor
+						todo={selectedTodo}
+						title={editTitle}
+						description={editDescription}
+						tags={editTags}
+						newTag={newTag}
+						isPreview={isPreview}
+						onTitleChange={setEditTitle}
+						onDescriptionChange={setEditDescription}
+						onDeleteTodo={() => handleDeleteTodo(selectedTodo.id)}
+						onAddTag={(tag) => {
+							if (!editTags.includes(tag)) {
+								setEditTags([...editTags, tag]);
+								setNewTag("");
+							}
+						}}
+						onRemoveTag={(tag) => {
+							setEditTags(editTags.filter((t) => t !== tag));
+						}}
+						onNewTagChange={setNewTag}
+						onSave={handleSaveTodo}
+						isSaving={isSaving}
+						onTogglePreview={() => setIsPreview(!isPreview)}
+					/>
+				) : (
+					<div className="flex-1 flex flex-col">
+						<header className="flex justify-end items-center p-4 gap-4">
 							<Theme variant="outline" />
-							<button className="mr-1" title="Logout">
-								<LogOut onClick={logout} className="text-red-500" />
-							</button>
+						</header>
+						<div className="flex-1 flex flex-col items-center justify-center text-center p-4 -mt-16">
+							<FilePlus2 className="w-16 h-16 text-muted-foreground/50 mb-4" />
+							<h2 className="text-2xl font-semibold text-foreground mb-2">
+								Welcome to NotesForge
+							</h2>
+							<p className="text-muted-foreground max-w-sm">
+								Select a note from the sidebar to start editing, or create a new
+								one using the button below.
+							</p>
 						</div>
 					</div>
-					<div className="flex-1 flex items-center justify-center bg-background dark:text-gray-200 text-gray-700">
-						Select a todo or create a new one
-					</div>
-				</div>
-			)}
+				)}
+			</main>
+
+			<TooltipProvider>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							onClick={handleCreateNewTodo}
+							className="fixed bottom-12 right-8 w-16 h-16 rounded-full bg-primary text-primary-foreground shadow-2xl hover:bg-primary/90 hover:scale-105 transition-all"
+						>
+							<Pencil className="w-8 h-8" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="left">
+						<p>New Note</p>
+					</TooltipContent>
+				</Tooltip>
+			</TooltipProvider>
 		</div>
 	);
 };

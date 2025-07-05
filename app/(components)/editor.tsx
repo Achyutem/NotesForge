@@ -1,28 +1,78 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import rehypeRaw from "rehype-raw";
 import {
-	LogOut,
+	HelpCircle,
 	Trash,
 	Tag,
 	X,
-	Save,
 	Clock,
+	Keyboard,
+	Check,
+	Loader2,
 	Eye,
 	Edit3,
-	Upload,
 } from "lucide-react";
 import { Theme } from "./themeColor";
-import { logout } from "../utils/logout";
-import MarkdownGuidePopover from "./markdownGuide";
+import MarkdownGuideDialog from "./markdownGuide";
 import CodeBlock from "./codeBlock";
-import ShortcutsPopover from "./shortcutPopover";
-import { useLastUpdated } from "../hooks/useLastUpdated";
+import ShortcutsDialog from "./shortcutPopover";
 import { useShortcuts } from "../hooks/useShortcuts";
 import { EditorProps } from "../utils/types";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+const useLastUpdated = (createdAt?: string, updatedAt?: string) => {
+	const [relativeTime, setRelativeTime] = useState("just now");
+
+	useEffect(() => {
+		const update = () => {
+			const dateToUse =
+				updatedAt && updatedAt > (createdAt || "") ? updatedAt : createdAt;
+			if (!dateToUse) return;
+
+			const mostRecentDate = new Date(
+				dateToUse.endsWith("Z") ? dateToUse : dateToUse + "Z"
+			);
+
+			const now = new Date();
+			const diffInSeconds = Math.floor(
+				(now.getTime() - mostRecentDate.getTime()) / 1000
+			);
+
+			if (diffInSeconds < 5) {
+				setRelativeTime("just now");
+				return;
+			}
+			const minutes = Math.floor(diffInSeconds / 60);
+			if (minutes < 60) {
+				setRelativeTime(`${minutes} minute${minutes > 1 ? "s" : ""} ago`);
+				return;
+			}
+			const hours = Math.floor(minutes / 60);
+			if (hours < 24) {
+				setRelativeTime(`${hours} hour${hours > 1 ? "s" : ""} ago`);
+				return;
+			}
+			setRelativeTime(mostRecentDate.toLocaleDateString());
+		};
+
+		update();
+		const interval = setInterval(update, 60000);
+		return () => clearInterval(interval);
+	}, [createdAt, updatedAt]);
+
+	return relativeTime;
+};
 
 const Editor: React.FC<EditorProps> = ({
 	todo,
@@ -41,30 +91,30 @@ const Editor: React.FC<EditorProps> = ({
 	onSave,
 	onTogglePreview,
 }) => {
-	const lastUpdated = useLastUpdated(todo.updatedAt, todo.createdAt);
-	const [isShortcutOpen, setIsShortcutOpen] = useState(false);
-	const [isMarkdownOpen, setIsMarkdownOpen] = useState(false);
+	const lastUpdated = useLastUpdated(todo.createdAt, todo.updatedAt);
+	const [showShortcuts, setShowShortcuts] = useState(false);
+	const [showMarkdownGuide, setShowMarkdownGuide] = useState(false);
+	const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
+		"idle"
+	);
 
-	const transition = { duration: 0.25, ease: "easeInOut" };
+	useEffect(() => {
+		if (isSaving) {
+			setSaveState("saving");
+		} else if (saveState === "saving") {
+			setSaveState("saved");
+			const timer = setTimeout(() => setSaveState("idle"), 2000);
+			return () => clearTimeout(timer);
+		}
+	}, [isSaving, saveState]);
 
 	useShortcuts({
 		onTogglePreview,
 		onDeleteTodo,
-		setIsShortcutOpen,
-		setIsMarkdownOpen,
+		setIsShortcutOpen: setShowShortcuts,
+		setIsMarkdownOpen: setShowMarkdownGuide,
+		onSave,
 	});
-
-	const editorVariants = {
-		hidden: { opacity: 0, x: -20, scale: 0.98 },
-		visible: { opacity: 1, x: 0, scale: 1 },
-		exit: { opacity: 0, x: -20, scale: 0.98 },
-	};
-
-	const previewVariants = {
-		hidden: { opacity: 0, x: 20, scale: 0.98 },
-		visible: { opacity: 1, x: 0, scale: 1 },
-		exit: { opacity: 0, x: 20, scale: 0.98 },
-	};
 
 	const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter" && newTag.trim()) {
@@ -74,194 +124,214 @@ const Editor: React.FC<EditorProps> = ({
 	};
 
 	return (
-		<div className="flex flex-col h-screen w-screen">
-			<div className="sticky top-0 bg-background border-b border-gray-300 px-4 py-3 md:p-3 flex justify-between items-center">
+		<main className="flex flex-col h-screen w-full bg-background">
+			<header className="sticky top-0 bg-background/80 backdrop-blur-sm z-10 px-6 flex justify-between items-center border-b border-border h-[65px]">
 				<input
 					id="todo-title-input"
 					type="text"
 					value={title}
 					onChange={(e) => onTitleChange(e.target.value)}
-					className="bg-transparent text-primary text-xl font-medium focus:outline-none flex-1 min-w-[200px]"
-					placeholder="Note title"
+					className="bg-transparent text-xl font-semibold focus:outline-none flex-1 min-w-[150px] text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary"
+					placeholder="Untitled Note"
 				/>
-				<div className="flex items-center gap-1">
-					<button
-						onClick={onSave}
-						disabled={isSaving}
-						className="p-2 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-1"
-						title="Save (Ctrl + S)"
-						aria-label="Save"
+				<div className="flex items-center gap-2">
+					<AnimatePresence mode="wait">
+						<motion.div
+							key={saveState}
+							initial={{ opacity: 0, scale: 0.8 }}
+							animate={{ opacity: 1, scale: 1 }}
+							exit={{ opacity: 0, scale: 0.8 }}
+							className="flex items-center gap-2 text-sm text-muted-foreground w-24 justify-center"
+						>
+							{saveState === "saving" && (
+								<>
+									<Loader2 className="w-4 h-4 animate-spin" /> Saving...
+								</>
+							)}
+							{saveState === "saved" && (
+								<>
+									<Check className="w-4 h-4 text-green-500" /> Saved
+								</>
+							)}
+						</motion.div>
+					</AnimatePresence>
+					<Button
+						onClick={onTogglePreview}
+						variant="outline"
+						size="sm"
+						className="gap-2"
 					>
-						<Save className="w-5 h-5" />
-					</button>
+						<AnimatePresence mode="wait">
+							{isPreview ? (
+								<motion.div
+									key="edit"
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									className="flex items-center gap-2"
+								>
+									<Edit3 className="w-4 h-4" /> Edit
+								</motion.div>
+							) : (
+								<motion.div
+									key="preview"
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									className="flex items-center gap-2"
+								>
+									<Eye className="w-4 h-4" /> Preview
+								</motion.div>
+							)}
+						</AnimatePresence>
+					</Button>
 					{todo.id && (
-						<button
+						<Button
 							onClick={onDeleteTodo}
-							className="p-2 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-1"
-							title="Delete (Ctrl + D)"
+							variant="outline"
+							size="icon"
+							className="text-muted-foreground hover:text-destructive hover:border-destructive/50"
+							title="Delete"
 						>
-							<Trash className="w-5 h-5" />
-						</button>
+							<Trash className="w-4 h-4" />
+						</Button>
 					)}
-					<button
-						className="p-2 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-1"
-						onClick={async () => {
-							try {
-								const response = await fetch("/api/export");
-								if (response.ok) {
-									const blob = await response.blob();
-									const url = URL.createObjectURL(blob);
-									const link = document.createElement("a");
-									link.href = url;
-									link.download = "todos.csv";
-									document.body.appendChild(link);
-									link.click();
-									document.body.removeChild(link);
-									URL.revokeObjectURL(url);
-								} else {
-									console.error("Failed to export todos");
-								}
-							} catch (error) {
-								console.error("Error exporting todos:", error);
-							}
-						}}
-						title="Export Todos"
-					>
-						<Upload className="w-5 h-5" />
-					</button>
-					<Theme />
-					<button onClick={onSave} title="Logout" className="pl-2">
-						<LogOut
-							onClick={logout}
-							className="text-red-500 ml-1 hover:animate-bounce"
-						/>
-					</button>
+					<Theme variant="outline" />
 				</div>
-			</div>
-			<div className="border-b border-gray-300 px-4 flex items-center gap-2 bg-background">
-				<Tag className="w-4 h-4 text-primary" />
-				<div className="flex flex-wrap gap-2 items-center flex-1">
+			</header>
+
+			<div className="bg-muted/30 border-b border-border px-6 py-2 flex items-center gap-2 text-sm">
+				<Tag className="w-4 h-4 text-muted-foreground shrink-0" />
+				<div className="flex flex-wrap gap-1.5 items-center">
 					{tags.map((tag) => (
-						<span
+						<Badge
 							key={tag}
-							className="bg-gray-200 font-semibold dark:bg-slate-800 text-sm px-2 py-1 rounded-full flex items-center gap-1"
+							variant="secondary"
+							className="flex items-center gap-1.5 hover:bg-secondary/80"
 						>
-							<span className="text-primary">{tag}</span>
+							{tag}
 							<button
 								onClick={() => onRemoveTag(tag)}
-								className="text-gray-500 hover:text-red-500 p-0.5"
+								className="rounded-full hover:bg-black/20 dark:hover:bg-white/20 -mr-1"
 							>
 								<X className="w-3 h-3" />
 							</button>
-						</span>
+						</Badge>
 					))}
 					<input
 						type="text"
 						value={newTag}
 						onChange={(e) => onNewTagChange(e.target.value)}
 						onKeyDown={handleTagKeyDown}
-						placeholder="Add tag"
-						className="bg-transparent text-primary text-sm focus:outline-none min-w-[80px] flex-1"
-					/>
-				</div>
-				<div className="px-2 py-2 text-sm flex items-center gap-2 dark:text-gray-200 text-gray-700">
-					<Clock className="w-4 h-4 text-primary inline-block" />
-					Last Updated: <strong>{lastUpdated}</strong>
-					<MarkdownGuidePopover
-						isOpen={isMarkdownOpen}
-						onToggle={setIsMarkdownOpen}
-					/>
-					<ShortcutsPopover
-						isOpen={isShortcutOpen}
-						onToggle={setIsShortcutOpen}
+						placeholder="Add a tag..."
+						className="bg-transparent focus:outline-none min-w-[80px] flex-1 text-sm"
 					/>
 				</div>
 			</div>
+
 			<div className="relative flex-1 w-full overflow-hidden">
-				<button
-					onClick={onTogglePreview}
-					title="Toggle Preview (Ctrl + P)"
-					className="absolute top-2 right-4 text-primary text-sm hover:underline flex items-center gap-1 z-10"
-				>
-					{isPreview ? (
-						<>
-							<Edit3 className="w-4 h-4" /> Edit
-						</>
-					) : (
-						<>
-							<Eye className="w-4 h-4" /> Preview
-						</>
-					)}
-				</button>
 				<AnimatePresence mode="wait">
-					<div className="relative h-full w-full bg-background text-black dark:text-white">
-						{isPreview ? (
-							<motion.div
-								key="preview"
-								initial="hidden"
-								animate="visible"
-								exit="exit"
-								variants={previewVariants}
-								transition={transition}
-								className="absolute inset-0 h-full w-full overflow-auto bg-inherit p-6"
+					{isPreview ? (
+						<motion.div
+							key="preview"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							className="absolute inset-0 h-full w-full overflow-y-auto p-8"
+						>
+							<ReactMarkdown
+								remarkPlugins={[remarkGfm, remarkBreaks]}
+								rehypePlugins={[rehypeRaw]}
+								className="prose prose-purple dark:prose-invert max-w-none"
+								components={{
+									...CodeBlock,
+									input: ({ checked, ...props }) => (
+										<input
+											type="checkbox"
+											checked={checked}
+											readOnly
+											{...props}
+										/>
+									),
+								}}
 							>
-								<ReactMarkdown
-									remarkPlugins={[remarkGfm, remarkBreaks]}
-									rehypePlugins={[rehypeRaw]}
-									components={{
-										// eslint-disable-next-line @typescript-eslint/no-explicit-any
-										li: ({ node, children, ...props }: any) => {
-											const isTaskList = node.children[0]?.tagName === "input";
-											return (
-												<li
-													{...props}
-													className={
-														isTaskList
-															? "list-none flex items-center gap-2"
-															: "list-disc"
-													}
-												>
-													{children}
-												</li>
-											);
-										},
-										input: ({ checked, ...props }) => (
-											<input
-												type="checkbox"
-												checked={checked}
-												readOnly
-												className="form-checkbox rounded text-primary"
-												{...props}
-											/>
-										),
-										...CodeBlock,
-									}}
-									className="markdown-content prose prose-sm sm:prose-base dark:prose-invert max-w-none"
-								>
-									{description}
-								</ReactMarkdown>
-							</motion.div>
-						) : (
-							<motion.div>
-								<motion.textarea
-									id="text-description"
-									key="editor"
-									initial="hidden"
-									animate="visible"
-									exit="exit"
-									variants={editorVariants}
-									transition={transition}
-									value={description}
-									onChange={(e) => onDescriptionChange(e.target.value)}
-									className="absolute inset-0 w-full h-full bg-inherit text-black dark:text-white resize-none focus:outline-none font-mono p-6"
-									placeholder="Start writing here... (Supports Markdown)"
-								/>
-							</motion.div>
-						)}
-					</div>
+								{description}
+							</ReactMarkdown>
+						</motion.div>
+					) : (
+						<motion.div
+							key="editor"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							className="absolute inset-0 h-full w-full"
+						>
+							<textarea
+								id="text-description"
+								value={description}
+								onChange={(e) => onDescriptionChange(e.target.value)}
+								className="w-full h-full bg-transparent text-foreground resize-none focus:outline-none font-mono p-8 text-base leading-relaxed  focus:ring-2 focus:ring-primary"
+								placeholder="Start writing your note here..."
+							/>
+						</motion.div>
+					)}
 				</AnimatePresence>
 			</div>
-		</div>
+
+			{/* --- FOOTER SECTION: REVERTED & REARRANGED --- */}
+			<footer className="border-t border-border px-4 py-1.5 flex items-center justify-end text-sm text-muted-foreground">
+				<div className="flex items-center gap-4">
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									onClick={() => setShowMarkdownGuide(true)}
+									variant="ghost"
+									size="icon"
+									className="hover:text-primary"
+								>
+									<HelpCircle className="w-4 h-4" />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Markdown Guide</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+
+					<div className="hidden md:block">
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										onClick={() => setShowShortcuts(true)}
+										variant="ghost"
+										size="icon"
+										className="hover:text-primary"
+									>
+										<Keyboard className="w-4 h-4" />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Shortcuts</p>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					</div>
+
+					<div className="h-4 w-px bg-border mx-1"></div>
+
+					<div className="flex items-center gap-2">
+						<Clock className="w-4 h-4" />
+						<span>Updated {lastUpdated}</span>
+					</div>
+				</div>
+			</footer>
+
+			<MarkdownGuideDialog
+				open={showMarkdownGuide}
+				onOpenChange={setShowMarkdownGuide}
+			/>
+			<ShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
+		</main>
 	);
 };
 
