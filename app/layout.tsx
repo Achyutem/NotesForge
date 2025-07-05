@@ -6,40 +6,40 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import ThemeDataProvider from "./context/themeProvider";
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+	variable: "--font-geist-sans",
+	subsets: ["latin"],
 });
 
 const firaMono = Fira_Mono({
-  variable: "--font-fira-mono",
-  subsets: ["latin"],
-  weight: ["400"],
+	variable: "--font-fira-mono",
+	subsets: ["latin"],
+	weight: ["400"],
 });
 
 export const metadata: Metadata = {
-  title: "NotesForge",
-  description: "Simple Markdown Notes App",
+	title: "NotesForge",
+	description: "Simple Markdown Notes App",
 };
 
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode;
 }>) {
-  return (
-    <html
-      lang="en"
-      suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${firaMono.variable} antialiased`}>
-        <NextThemesProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange>
-          <ThemeDataProvider>{children}</ThemeDataProvider>
-        </NextThemesProvider>
-      </body>
-    </html>
-  );
+	return (
+		<html lang="en" suppressHydrationWarning>
+			<body
+				className={`${geistSans.variable} ${firaMono.variable} antialiased bg-background text-foreground transition-colors duration-300`}
+			>
+				<NextThemesProvider
+					attribute="class"
+					defaultTheme="dark"
+					enableSystem
+					disableTransitionOnChange
+				>
+					<ThemeDataProvider>{children}</ThemeDataProvider>
+				</NextThemesProvider>
+			</body>
+		</html>
+	);
 }
