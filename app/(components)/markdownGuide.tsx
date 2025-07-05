@@ -1,61 +1,63 @@
-import { HelpCircle } from "lucide-react";
 import {
-	Popover,
-	PopoverTrigger,
-	PopoverContent,
-} from "@/components/ui/popover";
-import { motion } from "framer-motion";
-import React from "react";
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Props {
-	isOpen: boolean;
-	onToggle: (open: boolean) => void;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
 }
 
-const MarkdownGuidePopover: React.FC<Props> = ({ isOpen, onToggle }) => (
-	<Popover open={isOpen} onOpenChange={onToggle}>
-		<PopoverTrigger asChild>
-			<motion.button
-				whileTap={{ scale: 0.9 }}
-				className="py-2 px-1 rounded-md text-primary hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
-			>
-				<HelpCircle className="w-5 h-5" />
-			</motion.button>
-		</PopoverTrigger>
-		<PopoverContent asChild>
-			<motion.div
-				initial={{ opacity: 0, y: -10 }}
-				animate={{ opacity: 1, y: 0 }}
-				exit={{ opacity: 0, y: -10 }}
-				transition={{ duration: 0.2 }}
-				className="w-72 sm:w-84 md:w-[18rem] lg:w-[24rem] p-4 text-sm sm:text-sm md:text-base bg-background border border-gray-300 dark:border-gray-700 rounded-xl shadow-xl"
-			>
-				<h3 className="font-semibold text-base sm:text-lg md:text-xl mb-3 text-primary flex items-center gap-2">
-					Markdown Guide
-				</h3>
-				<div className="overflow-auto max-h-72 space-y-2 font-mono text-xs sm:text-sm md:text-base bg-gray-100 dark:bg-gray-800 p-2 rounded-md">
-					<pre className="whitespace-pre-wrap">{`# H1
+const MarkdownGuideDialog: React.FC<Props> = ({ open, onOpenChange }) => (
+	<Dialog open={open} onOpenChange={onOpenChange}>
+		<DialogContent className="sm:max-w-2xl">
+			<DialogHeader>
+				<DialogTitle className="text-2xl font-bold">Markdown Guide</DialogTitle>
+			</DialogHeader>
+			<div className="overflow-auto max-h-[70vh] space-y-4 font-mono text-sm bg-muted p-4 rounded-md mt-4">
+				<pre className="whitespace-pre-wrap">{`# H1
 ## H2
-**Bold**:  **text**
-*Italic*:  *text*
-\`Code\`:  \`inline\`
+### H3
 
-- Item 1
-- Item 2
+**Bold Text** or __Bold Text__
+*Italic Text* or _Italic Text_
+~~Strikethrough~~
 
-[Link](https://example.com)
+> Blockquote
 
-\`\`\`js
-console.log("Code Block");
+- Unordered List Item 1
+- Unordered List Item 2
+
+1. Ordered List Item 1
+2. Ordered List Item 2
+
+[A Link to Google](https://www.google.com)
+![An Image](https://via.placeholder.com/150)
+
+\`Inline code\` with backticks
+
+\`\`\`javascript
+// Code Block
+function greet() {
+  console.log("Hello, world!");
+}
 \`\`\`
 
-| Head | Head |
-|------|------|
-| Row  | Row |`}</pre>
-				</div>
-			</motion.div>
-		</PopoverContent>
-	</Popover>
+---
+
+| Header 1 | Header 2 |
+|----------|----------|
+| Cell 1   | Cell 2   |
+| Cell 3   | Cell 4   |
+
+- [x] Task List Item (checked)
+- [ ] Task List Item (unchecked)
+`}</pre>
+			</div>
+		</DialogContent>
+	</Dialog>
 );
 
-export default MarkdownGuidePopover;
+export default MarkdownGuideDialog;
