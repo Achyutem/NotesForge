@@ -1,68 +1,54 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import sqlite3 from "sqlite3";
+import Papa from "papaparse";
 
 const DB_FILE = "database.db";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getCurrentUserId(request: Request): number | null {
+	return 1;
+}
 
-function queryTodos() {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function queryUserTodos(userId: number): Promise<any[]> {
 	return new Promise((resolve, reject) => {
 		const db = new sqlite3.Database(DB_FILE, (err) => {
-			if (err) {
-				reject(`Database connection error: ${err.message}`);
-				return;
-			}
+			if (err) reject(`Database connection error: ${err.message}`);
+		});
 
-			const query = `
-        SELECT 
-          id, 
-          userId,
-          title, 
-          description, 
-          tags,
-          createdAt
-        FROM todos
-        ORDER BY createdAt DESC
-      `;
+		// Query now filters by the provided userId
+		const query = `
+            SELECT id, userId, title, description, tags, createdAt
+            FROM todos
+            WHERE userId = ?
+            ORDER BY createdAt DESC
+        `;
 
-			db.all(query, [], (err, todos) => {
-				db.close();
-
-				if (err) {
-					reject(`Query error: ${err.message}`);
-					return;
-				}
-
-				resolve(todos);
-			});
+		db.all(query, [userId], (err, todos) => {
+			db.close();
+			if (err) reject(`Query error: ${err.message}`);
+			resolve(todos);
 		});
 	});
 }
 
-function todosToCSV(todos: any) {
-	const header = "ID,User ID,Title,Description,Tags,Created At\n";
+export async function GET(request: Request) {
+	const userId = getCurrentUserId(request);
+	if (!userId) {
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
 
-	const rows = todos
-		.map((todo: any) => {
-			return [
-				todo.id,
-				todo.userId,
-				`"${(todo.title || "").replace(/"/g, '""')}"`,
-				`"${(todo.description || "").replace(/"/g, '""')}"`,
-				todo.tags ? `"${todo.tags.replace(/"/g, '""')}"` : "",
-				todo.createdAt,
-			].join(",");
-		})
-		.join("\n");
-
-	return header + rows;
-}
-
-export async function GET() {
 	try {
-		const todos = await queryTodos();
-		const csvContent = todosToCSV(todos);
+		const todos = await queryUserTodos(userId);
 
-		const filename = `todos_${new Date().toISOString().split("T")[0]}.csv`;
+		// Use PapaParse to correctly convert JSON to CSV, preventing data corruption
+		const csvContent = Papa.unparse(todos, {
+			header: true,
+			columns: ["id", "userId", "title", "description", "tags", "createdAt"],
+		});
+
+		const filename = `notesforge_export_${
+			new Date().toISOString().split("T")[0]
+		}.csv`;
 
 		return new NextResponse(csvContent, {
 			headers: {
@@ -70,6 +56,7 @@ export async function GET() {
 				"Content-Disposition": `attachment; filename="${filename}"`,
 			},
 		});
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} catch (error: any) {
 		return NextResponse.json(
 			{ error: error.message || "Failed to export todos" },
