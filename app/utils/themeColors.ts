@@ -1,4 +1,5 @@
 import { ThemeColors } from "./types";
+
 const themes = {
 	Orange: {
 		light: {
@@ -8,7 +9,7 @@ const themes = {
 			cardForeground: "20 14.3% 4.1%",
 			popover: "0 0% 100%",
 			popoverForeground: "20 14.3% 4.1%",
-			primary: "24.4, 88.8%, 51.2%",
+			primary: "24.4 88.8% 51.2%",
 			primaryForeground: "60 9.1% 97.8%",
 			secondary: "60 4.8% 95.9%",
 			secondaryForeground: "24 9.8% 10%",
@@ -30,7 +31,7 @@ const themes = {
 			cardForeground: "60 9.1% 97.8%",
 			popover: "20 14.3% 4.1%",
 			popoverForeground: "60 9.1% 97.8%",
-			primary: "25, 70%, 75%",
+			primary: "25 70% 75%",
 			primaryForeground: "60 9.1% 97.8%",
 			secondary: "12 6.5% 15.1%",
 			secondaryForeground: "60 9.1% 97.8%",
@@ -42,7 +43,7 @@ const themes = {
 			destructiveForeground: "60 9.1% 97.8%",
 			border: "12 6.5% 15.1%",
 			input: "12 6.5% 15.1%",
-			ring: "25, 70%, 75%",
+			ring: "25 70% 75%", // FIX: Removed commas
 		},
 	},
 	Blue: {
@@ -75,7 +76,7 @@ const themes = {
 			cardForeground: "210 40% 98%",
 			popover: "222.2 84% 4.9%",
 			popoverForeground: "210 40% 98%",
-			primary: "217, 65%, 80%",
+			primary: "217 65% 80%",
 			primaryForeground: "222.2 47.4% 11.2%",
 			secondary: "217.2 32.6% 17.5%",
 			secondaryForeground: "210 40% 98%",
@@ -98,7 +99,7 @@ const themes = {
 			cardForeground: "240 10% 3.9%",
 			popover: "0 0% 100%",
 			popoverForeground: "240 10% 3.9%",
-			primary: "142.2, 77.1%, 41.2%",
+			primary: "142.2 77.1% 41.2%",
 			primaryForeground: "355.7 100% 97.3%",
 			secondary: "240 4.8% 95.9%",
 			secondaryForeground: "240 5.9% 10%",
@@ -110,7 +111,7 @@ const themes = {
 			destructiveForeground: "0 0% 98%",
 			border: "240 5.9% 90%",
 			input: "240 5.9% 90%",
-			ring: "142.2, 80.7%, 42.7%",
+			ring: "142.2 80.7% 42.7%",
 			radius: "0.5rem",
 		},
 		dark: {
@@ -120,7 +121,7 @@ const themes = {
 			cardForeground: "0 0% 95%",
 			popover: "0 0% 9%",
 			popoverForeground: "0 0% 95%",
-			primary: "142, 50%, 75%",
+			primary: "142 50% 75%", // FIX: Removed commas
 			primaryForeground: "144.9 80.4% 10%",
 			secondary: "240 3.7% 15.9%",
 			secondaryForeground: "0 0% 98%",
@@ -165,7 +166,7 @@ const themes = {
 			cardForeground: "0 0% 95%",
 			popover: "0 0% 9%",
 			popoverForeground: "0 0% 95%",
-			primary: "347, 55%, 75%",
+			primary: "347 55% 75%",
 			primaryForeground: "355.7 100% 97.3%",
 			secondary: "240 3.7% 15.9%",
 			secondaryForeground: "0 0% 98%",
@@ -177,7 +178,7 @@ const themes = {
 			destructiveForeground: "0 85.7% 97.3%",
 			border: "240 3.7% 15.9%",
 			input: "240 3.7% 15.9%",
-			ring: "347, 55%, 75%",
+			ring: "347 55% 75%",
 		},
 	},
 	Zinc: {
@@ -233,8 +234,8 @@ const themes = {
 			cardForeground: "258.4 14.3% 4.1%",
 			popover: "0 0% 100%",
 			popoverForeground: "258.4 14.3% 4.1%",
-			primary: "258.4, 85.9%, 50%",
-			primaryForeground: "60 9.1% 97.8%",
+			primary: "271 91% 65%",
+			primaryForeground: "258.4 14.3% 4.1%",
 			secondary: "260 4.8% 95.9%",
 			secondaryForeground: "258 9.8% 10%",
 			muted: "260 4.8% 95.9%",
@@ -245,7 +246,7 @@ const themes = {
 			destructiveForeground: "60 9.1% 97.8%",
 			border: "258 5.9% 90%",
 			input: "258 5.9% 90%",
-			ring: "258.4, 85.9%, 50%",
+			ring: "258.4 85.9% 50%",
 			radius: "0.5rem",
 		},
 		dark: {
@@ -255,8 +256,8 @@ const themes = {
 			cardForeground: "60 9.1% 97.8%",
 			popover: "258.4 14.3% 4.1%",
 			popoverForeground: "60 9.1% 97.8%",
-			primary: "258, 60%, 80%",
-			primaryForeground: "60 9.1% 97.8%",
+			primary: "271 91% 65%",
+			primaryForeground: "258.4 14.3% 4.1%",
 			secondary: "258 6.5% 15.1%",
 			secondaryForeground: "60 9.1% 97.8%",
 			muted: "258 6.5% 15.1%",
@@ -267,7 +268,7 @@ const themes = {
 			destructiveForeground: "60 9.1% 97.8%",
 			border: "258 6.5% 15.1%",
 			input: "258 6.5% 15.1%",
-			ring: "258, 60%, 80%",
+			ring: "258 60% 80%",
 		},
 	},
 };
