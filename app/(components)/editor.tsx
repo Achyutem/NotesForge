@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+"use client";
+import React, { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -97,6 +98,7 @@ const Editor: React.FC<EditorProps> = ({
 	const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
 		"idle"
 	);
+	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	useEffect(() => {
 		if (isSaving) {
@@ -107,6 +109,14 @@ const Editor: React.FC<EditorProps> = ({
 			return () => clearTimeout(timer);
 		}
 	}, [isSaving, saveState]);
+
+	useEffect(() => {
+		if (!isPreview && textareaRef.current) {
+			setTimeout(() => {
+				textareaRef.current?.focus();
+			}, 100);
+		}
+	}, [isPreview]);
 
 	useShortcuts({
 		onTogglePreview,
@@ -131,7 +141,7 @@ const Editor: React.FC<EditorProps> = ({
 					type="text"
 					value={title}
 					onChange={(e) => onTitleChange(e.target.value)}
-					className="bg-transparent text-xl font-semibold focus:outline-none flex-1 min-w-[150px] text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary"
+					className="bg-transparent text-xl font-semibold focus:outline-none flex-1 min-w-[150px] text-foreground placeholder:text-muted-foreground caret-primary"
 					placeholder="Untitled Note"
 				/>
 				<div className="flex items-center gap-2">
@@ -167,7 +177,7 @@ const Editor: React.FC<EditorProps> = ({
 									key="edit"
 									initial={{ opacity: 0 }}
 									animate={{ opacity: 1 }}
-									className="flex items-center gap-2"
+									className="flex items-center gap-2 text-primary"
 								>
 									<Edit3 className="w-4 h-4" /> Edit
 								</motion.div>
@@ -176,7 +186,7 @@ const Editor: React.FC<EditorProps> = ({
 									key="preview"
 									initial={{ opacity: 0 }}
 									animate={{ opacity: 1 }}
-									className="flex items-center gap-2"
+									className="flex items-center gap-2 text-primary"
 								>
 									<Eye className="w-4 h-4" /> Preview
 								</motion.div>
@@ -188,7 +198,7 @@ const Editor: React.FC<EditorProps> = ({
 							onClick={onDeleteTodo}
 							variant="outline"
 							size="icon"
-							className="text-muted-foreground hover:text-destructive hover:border-destructive/50"
+							className="text-red-500 hover:text-red-600 hover:border-red-600"
 							title="Delete"
 						>
 							<Trash className="w-4 h-4" />
@@ -199,7 +209,7 @@ const Editor: React.FC<EditorProps> = ({
 			</header>
 
 			<div className="bg-muted/30 border-b border-border px-6 py-2 flex items-center gap-2 text-sm">
-				<Tag className="w-4 h-4 text-muted-foreground shrink-0" />
+				<Tag className="w-4 h-4 shrink-0 text-primary" />
 				<div className="flex flex-wrap gap-1.5 items-center">
 					{tags.map((tag) => (
 						<Badge
@@ -222,7 +232,7 @@ const Editor: React.FC<EditorProps> = ({
 						onChange={(e) => onNewTagChange(e.target.value)}
 						onKeyDown={handleTagKeyDown}
 						placeholder="Add a tag..."
-						className="bg-transparent focus:outline-none min-w-[80px] flex-1 text-sm"
+						className="bg-transparent focus:outline-none min-w-[80px] flex-1 text-sm caret-primary"
 					/>
 				</div>
 			</div>
@@ -263,12 +273,16 @@ const Editor: React.FC<EditorProps> = ({
 							animate={{ opacity: 1 }}
 							exit={{ opacity: 0 }}
 							className="absolute inset-0 h-full w-full"
+							onAnimationComplete={() => {
+								textareaRef.current?.focus();
+							}}
 						>
 							<textarea
+								ref={textareaRef}
 								id="text-description"
 								value={description}
 								onChange={(e) => onDescriptionChange(e.target.value)}
-								className="w-full h-full bg-transparent text-foreground resize-none focus:outline-none font-mono p-8 text-base leading-relaxed  focus:ring-2 focus:ring-primary"
+								className="w-full h-full bg-transparent text-foreground resize-none focus:outline-none font-mono p-8 text-base leading-relaxed focus:ring-2 focus:ring-primary caret-primary"
 								placeholder="Start writing your note here..."
 							/>
 						</motion.div>
@@ -276,7 +290,6 @@ const Editor: React.FC<EditorProps> = ({
 				</AnimatePresence>
 			</div>
 
-			{/* --- FOOTER SECTION: REVERTED & REARRANGED --- */}
 			<footer className="border-t border-border px-4 py-1.5 flex items-center justify-end text-sm text-muted-foreground">
 				<div className="flex items-center gap-4">
 					<TooltipProvider>
@@ -288,7 +301,7 @@ const Editor: React.FC<EditorProps> = ({
 									size="icon"
 									className="hover:text-primary"
 								>
-									<HelpCircle className="w-4 h-4" />
+									<HelpCircle className="w-4 h-4 text-primary" />
 								</Button>
 							</TooltipTrigger>
 							<TooltipContent>
@@ -307,7 +320,7 @@ const Editor: React.FC<EditorProps> = ({
 										size="icon"
 										className="hover:text-primary"
 									>
-										<Keyboard className="w-4 h-4" />
+										<Keyboard className="w-4 h-4 text-primary" />
 									</Button>
 								</TooltipTrigger>
 								<TooltipContent>
@@ -320,7 +333,7 @@ const Editor: React.FC<EditorProps> = ({
 					<div className="h-4 w-px bg-border mx-1"></div>
 
 					<div className="flex items-center gap-2">
-						<Clock className="w-4 h-4" />
+						<Clock className="w-4 h-4 text-primary" />
 						<span>Updated {lastUpdated}</span>
 					</div>
 				</div>
