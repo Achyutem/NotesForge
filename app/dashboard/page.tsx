@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import TodoSidebar from "../(components)/todoSidebar";
 import Editor from "../(components)/editor";
-import { FilePlus2, Pencil } from "lucide-react";
+import { FilePlus2, Pencil, Upload } from "lucide-react";
 import { useTodoManager } from "../hooks/useTodoManager";
 import { useTodoEditorState } from "../hooks/useTodoEdtitorState";
 import { useShortcuts } from "../hooks/useShortcuts";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Theme } from "../(components)/themeColor";
+import { useImportHandler } from "../hooks/useImportHandler";
 
 const Todos: React.FC = () => {
 	const {
@@ -74,6 +75,7 @@ const Todos: React.FC = () => {
 	});
 
 	const [searchQuery, setSearchQuery] = useState("");
+	const { triggerImport, renderFileInput } = useImportHandler();
 
 	useEffect(() => {
 		fetchTodos();
@@ -171,10 +173,16 @@ const Todos: React.FC = () => {
 								Select a note from the sidebar to start editing, or create a new
 								one using the button below.
 							</p>
+							<Button onClick={triggerImport} className="mt-6 gap-2">
+								<Upload className="w-4 h-4" />
+								Import from CSV
+							</Button>
 						</div>
 					</div>
 				)}
 			</main>
+
+			{renderFileInput()}
 
 			<TooltipProvider>
 				<Tooltip>
@@ -187,7 +195,7 @@ const Todos: React.FC = () => {
 						</Button>
 					</TooltipTrigger>
 					<TooltipContent side="left">
-						<p>New Note</p>
+						<p>New Note (Ctrl+Shift+N)</p>
 					</TooltipContent>
 				</Tooltip>
 			</TooltipProvider>
