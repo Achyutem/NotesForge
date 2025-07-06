@@ -121,7 +121,7 @@ const themes = {
 			cardForeground: "0 0% 95%",
 			popover: "0 0% 9%",
 			popoverForeground: "0 0% 95%",
-			primary: "142 50% 75%", // FIX: Removed commas
+			primary: "142 50% 75%",
 			primaryForeground: "144.9 80.4% 10%",
 			secondary: "240 3.7% 15.9%",
 			secondaryForeground: "0 0% 98%",

@@ -5,8 +5,6 @@ import { ThemeProviderProps } from "next-themes";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { ThemeColors } from "../utils/types";
 
-// --- THIS IS THE FIX ---
-// Define the shape of your context's state
 interface ThemeColorStateParams {
 	themeColor: ThemeColors;
 	setThemeColor: React.Dispatch<React.SetStateAction<ThemeColors>>;
