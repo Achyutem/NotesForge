@@ -12,6 +12,8 @@ import {
 	XCircle,
 	LogOut,
 	Settings,
+	Upload,
+	FileDown,
 } from "lucide-react";
 import {
 	DropdownMenu,
@@ -35,18 +37,15 @@ import Image from "next/image";
 import { useShortcuts } from "../hooks/useShortcuts";
 import { TodoSidebarProps } from "../utils/types";
 import { logout } from "../utils/logout";
-import ImportTodos from "./import";
-import ExportTodos from "./export";
+import { useImportHandler } from "../hooks/useImportHandler";
+import { useExportHandler } from "../hooks/useExportHandler";
 
 const formatRelativeTime = (createdAt: string, updatedAt: string) => {
 	const dateToUse = updatedAt > createdAt ? updatedAt : createdAt;
-
 	const mostRecentDate = new Date(
 		dateToUse.endsWith("Z") ? dateToUse : dateToUse + "Z"
 	);
-
 	const now = new Date();
-	// Get difference in seconds
 	const diffInSeconds = Math.floor(
 		(now.getTime() - mostRecentDate.getTime()) / 1000
 	);
@@ -61,69 +60,88 @@ const formatRelativeTime = (createdAt: string, updatedAt: string) => {
 	return mostRecentDate.toLocaleDateString();
 };
 
-const ActionsMenu = () => (
-	<DropdownMenu>
-		<DropdownMenuTrigger asChild>
-			<Button
-				variant="ghost"
-				className="w-full justify-start gap-2 px-3 text-muted-foreground hover:text-foreground"
-			>
-				<Settings className="w-4 h-4" />
-				<span>Actions & Settings</span>
-			</Button>
-		</DropdownMenuTrigger>
-		<DropdownMenuContent
-			align="end"
-			side="top"
-			className="w-56 mb-1 p-2 border-border/20 bg-background/80 backdrop-blur-xl rounded-xl shadow-2xl"
-		>
-			<DropdownMenuLabel className="px-2 py-1.5 font-semibold">
-				Data Management
-			</DropdownMenuLabel>
-			<DropdownMenuSeparator className="bg-border/50" />
-			<ImportTodos />
-			<ExportTodos />
-			<DropdownMenuSeparator className="bg-border/50" />
-			<DropdownMenuItem
-				onClick={logout}
-				className="rounded-md p-2 gap-2 font-medium text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
-			>
-				<LogOut className="w-4 h-4" />
-				Logout
-			</DropdownMenuItem>
-		</DropdownMenuContent>
-	</DropdownMenu>
-);
+const ActionsMenu = () => {
+	const { triggerImport, renderFileInput } = useImportHandler();
+	const { triggerExport } = useExportHandler();
 
-const ActionsMenuCollapsed = () => (
-	<DropdownMenu>
-		<DropdownMenuTrigger asChild>
-			<Button variant="ghost" size="icon">
-				<Settings className="w-5 h-5" />
-			</Button>
-		</DropdownMenuTrigger>
-		<DropdownMenuContent
-			align="end"
-			side="right"
-			className="w-56 ml-1 p-2 border-border/20 bg-background/80 backdrop-blur-xl rounded-xl shadow-2xl"
-		>
-			<DropdownMenuLabel className="px-2 py-1.5 font-semibold">
-				Data Management
-			</DropdownMenuLabel>
-			<DropdownMenuSeparator className="bg-border/50" />
-			<ImportTodos />
-			<ExportTodos />
-			<DropdownMenuSeparator className="bg-border/50" />
-			<DropdownMenuItem
-				onClick={logout}
-				className="rounded-md p-2 gap-2 font-medium text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+	return (
+		<>
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button
+						variant="ghost"
+						className="w-full justify-start gap-2 px-3 hover:text-primary/90"
+					>
+						<Settings className="w-4 h-4 text-primary" />
+						<span>Actions & Settings</span>
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent
+					align="end"
+					side="top"
+					className="w-56 mb-1 p-2 border-border/20 bg-background/80 backdrop-blur-xl rounded-xl shadow-2xl"
+				>
+					<DropdownMenuSeparator className="bg-border/50" />
+					<DropdownMenuItem
+						onSelect={(e) => {
+							e.preventDefault();
+							triggerImport();
+						}}
+						className="rounded-md p-2 gap-2 font-medium cursor-pointer"
+					>
+						<Upload className="w-4 h-4 text-primary" />
+						Import from CSV...
+					</DropdownMenuItem>
+					<DropdownMenuItem
+						onSelect={triggerExport}
+						className="rounded-md p-2 gap-2 font-medium cursor-pointer"
+					>
+						<FileDown className="w-4 h-4 text-primary" />
+						Export All to CSV
+					</DropdownMenuItem>
+					<DropdownMenuSeparator className="bg-border/50" />
+					<DropdownMenuItem
+						onClick={logout}
+						className="rounded-md p-2 gap-2 font-medium text-red-500 focus:text-red-400 focus:bg-destructive/10 cursor-pointer"
+					>
+						<LogOut className="w-4 h-4" />
+						Logout
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
+			{renderFileInput()}
+		</>
+	);
+};
+
+const ActionsMenuCollapsed = () => {
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<Button variant="ghost" size="icon">
+					<Settings className="w-5 h-5 text-primary" />
+				</Button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent
+				align="end"
+				side="right"
+				className="w-56 ml-1 p-2 border-border/20 bg-background/80 backdrop-blur-xl rounded-xl shadow-2xl"
 			>
-				<LogOut className="w-4 h-4" />
-				Logout
-			</DropdownMenuItem>
-		</DropdownMenuContent>
-	</DropdownMenu>
-);
+				<DropdownMenuLabel className="px-2 py-1.5 font-semibold">
+					Actions
+				</DropdownMenuLabel>
+				<DropdownMenuSeparator className="bg-border/50" />
+				<DropdownMenuItem
+					onClick={logout}
+					className="rounded-md p-2 gap-2 font-medium text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+				>
+					<LogOut className="w-4 h-4" />
+					Logout
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
+};
 
 const TodoSidebar: React.FC<TodoSidebarProps> = ({
 	todos,
@@ -140,7 +158,6 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
 	const [isCollapsed, setIsCollapsed] = React.useState(false);
 
 	useShortcuts({
-		// onCreateTodo is no longer triggered from a button here, but the shortcut still works
 		toggleSidebar: () => setIsCollapsed((prev) => !prev),
 	});
 
@@ -175,9 +192,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
 									height={24}
 									priority
 								/>
-								<h1 className="text-base font-bold text-foreground">
-									NotesForge
-								</h1>
+								<h1 className="text-base font-bold text-primary">NotesForge</h1>
 							</div>
 							<TooltipProvider>
 								<Tooltip>
@@ -187,7 +202,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
 											variant="ghost"
 											onClick={() => setIsCollapsed(true)}
 										>
-											<ChevronsLeft className="w-4 h-4" />
+											<ChevronsLeft className="w-4 h-4 text-primary" />
 										</Button>
 									</TooltipTrigger>
 									<TooltipContent>
@@ -212,7 +227,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
 											variant="ghost"
 											onClick={() => setIsCollapsed(false)}
 										>
-											<ChevronsRight className="w-5 h-5" />
+											<ChevronsRight className="w-5 h-5 text-primary" />
 										</Button>
 									</TooltipTrigger>
 									<TooltipContent side="right">
@@ -234,13 +249,13 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
 						className="p-3 border-b border-border"
 					>
 						<div className="relative">
-							<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+							<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
 							<Input
 								id="search-input"
 								value={searchQuery}
 								onChange={(e) => onSearchChange(e.target.value)}
 								placeholder="Search notes..."
-								className="pl-9 pr-8 text-sm rounded-md bg-background border-border"
+								className="pl-9 pr-8 text-sm rounded-md bg-background border-border caret-primary"
 							/>
 							{searchQuery && (
 								<button
@@ -319,7 +334,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
 												<Button
 													size="icon"
 													variant="ghost"
-													className="h-7 w-7 rounded-full shrink-0"
+													className="h-7 w-7 text-primary rounded-full shrink-0"
 													onClick={(e) => e.stopPropagation()}
 												>
 													<MoreVertical className="h-4 w-4" />
@@ -345,7 +360,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
 														e.stopPropagation();
 														onDeleteTodo(todo.id);
 													}}
-													className="rounded-md p-2 gap-2 font-medium text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+													className="rounded-md p-2 gap-2 font-medium text-red-500 focus:text-red-400 focus:bg-destructive/10 cursor-pointer"
 												>
 													<Trash className="w-4 h-4" />
 													Delete
@@ -384,7 +399,7 @@ const TodoSidebar: React.FC<TodoSidebarProps> = ({
 				</div>
 			</div>
 
-			<div className="p-2 border-t border-border shrink-0">
+			<div className="p-3 border-t border-border shrink-0">
 				{isCollapsed ? <ActionsMenuCollapsed /> : <ActionsMenu />}
 			</div>
 		</motion.aside>
