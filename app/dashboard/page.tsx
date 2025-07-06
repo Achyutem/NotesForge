@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import React, { useState, useEffect } from "react";
 import TodoSidebar from "../(components)/todoSidebar";
@@ -132,6 +133,13 @@ const Todos: React.FC = () => {
 				onTodoSelect={handleTodoSelect}
 				onDeleteTodo={handleDeleteTodo}
 				onEditTodo={handleEditTodo}
+				filterTag={null}
+				onTagSelect={function (_tag: string): void {
+					throw new Error("Function not implemented.");
+				}}
+				onClearTagFilter={function (): void {
+					throw new Error("Function not implemented.");
+				}}
 			/>
 			<main className="flex-1 flex flex-col h-screen">
 				{selectedTodo ? (
@@ -189,7 +197,7 @@ const Todos: React.FC = () => {
 					<TooltipTrigger asChild>
 						<Button
 							onClick={handleCreateNewTodo}
-							className="fixed bottom-12 right-8 w-16 h-16 rounded-full bg-primary text-primary-foreground shadow-2xl hover:bg-primary/90 hover:scale-105 transition-all"
+							className="fixed bottom-16 right-10 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-2xl hover:bg-primary/90 hover:scale-105 transition-all"
 						>
 							<Pencil className="w-8 h-8" />
 						</Button>
