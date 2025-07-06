@@ -6,6 +6,16 @@ import {
 	DialogTitle,
 	DialogDescription,
 } from "@/components/ui/dialog";
+import {
+	FilePlus,
+	Save,
+	Trash2,
+	PanelLeftClose,
+	Eye,
+	BookText,
+	Keyboard as KeyboardIcon,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Props {
 	open: boolean;
@@ -13,66 +23,56 @@ interface Props {
 }
 
 const Kbd: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-	<kbd className="px-2 py-1.5 text-sm font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">
+	<kbd
+		className={cn(
+			"px-2 py-1 text-xs font-semibold text-foreground bg-muted border shadow-sm rounded-md",
+			"dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500",
+			"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" // Ensure focus style
+		)}
+	>
 		{children}
 	</kbd>
 );
 
+const shortcuts = [
+	{ icon: FilePlus, label: "New Note", keys: ["Ctrl", "Shift", "N"] },
+	{ icon: Save, label: "Save Note", keys: ["Ctrl", "S"] },
+	{ icon: Trash2, label: "Delete Note", keys: ["Ctrl", "D"] },
+	{ icon: PanelLeftClose, label: "Toggle Sidebar", keys: ["Ctrl", "B"] },
+	{ icon: Eye, label: "Toggle Preview", keys: ["Ctrl", "P"] },
+	{ icon: BookText, label: "Markdown Guide", keys: ["Ctrl", "M"] },
+	{ icon: KeyboardIcon, label: "Shortcuts Guide", keys: ["Ctrl", "H"] },
+];
+
 const ShortcutsDialog: React.FC<Props> = ({ open, onOpenChange }) => (
 	<Dialog open={open} onOpenChange={onOpenChange}>
-		<DialogContent className="sm:max-w-md">
+		<DialogContent className="sm:max-w-lg bg-background/80 backdrop-blur-xl border border-primary">
 			<DialogHeader>
-				<DialogTitle className="text-2xl font-bold">
-					Keyboard Shortcuts
+				<DialogTitle className="text-2xl font-bold flex items-center gap-2 text-primary">
+					<KeyboardIcon className="w-6 h-6" /> Keyboard Shortcuts
 				</DialogTitle>
 				<DialogDescription>
 					Boost your productivity with these shortcuts.
 				</DialogDescription>
 			</DialogHeader>
-			<ul className="space-y-3 mt-4 text-sm">
-				<li className="flex justify-between items-center">
-					<span>New Note</span>
-					<div className="flex items-center gap-1">
-						<Kbd>Ctrl</Kbd> + <Kbd>Shift</Kbd> + <Kbd>N</Kbd>
+			<div className="space-y-3 mt-4 text-sm">
+				{shortcuts.map(({ icon: Icon, label, keys }) => (
+					<div
+						key={label}
+						className="flex justify-between items-center p-2 rounded-lg hover:bg-muted"
+					>
+						<div className="flex items-center gap-3">
+							<Icon className="w-5 h-5  text-primary" />
+							<span className="font-medium text-foreground">{label}</span>
+						</div>
+						<div className="flex items-center gap-1.5">
+							{keys.map((key) => (
+								<Kbd key={key}>{key}</Kbd>
+							))}
+						</div>
 					</div>
-				</li>
-				<li className="flex justify-between items-center">
-					<span>Save Note</span>
-					<div className="flex items-center gap-1">
-						<Kbd>Ctrl</Kbd> + <Kbd>S</Kbd>
-					</div>
-				</li>
-				<li className="flex justify-between items-center">
-					<span>Delete Note</span>
-					<div className="flex items-center gap-1">
-						<Kbd>Ctrl</Kbd> + <Kbd>D</Kbd>
-					</div>
-				</li>
-				<li className="flex justify-between items-center">
-					<span>Toggle Sidebar</span>
-					<div className="flex items-center gap-1">
-						<Kbd>Ctrl</Kbd> + <Kbd>B</Kbd>
-					</div>
-				</li>
-				<li className="flex justify-between items-center">
-					<span>Toggle Preview</span>
-					<div className="flex items-center gap-1">
-						<Kbd>Ctrl</Kbd> + <Kbd>P</Kbd>
-					</div>
-				</li>
-				<li className="flex justify-between items-center">
-					<span>Markdown Guide</span>
-					<div className="flex items-center gap-1">
-						<Kbd>Ctrl</Kbd> + <Kbd>M</Kbd>
-					</div>
-				</li>
-				<li className="flex justify-between items-center">
-					<span>Shortcuts Guide</span>
-					<div className="flex items-center gap-1">
-						<Kbd>Ctrl</Kbd> + <Kbd>H</Kbd>
-					</div>
-				</li>
-			</ul>
+				))}
+			</div>
 		</DialogContent>
 	</Dialog>
 );
