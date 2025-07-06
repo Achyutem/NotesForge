@@ -37,7 +37,7 @@ const guideItems = [
 
 const MarkdownGuideDialog: React.FC<Props> = ({ open, onOpenChange }) => (
 	<Dialog open={open} onOpenChange={onOpenChange}>
-		<DialogContent className="sm:max-w-3xl bg-background/80 backdrop-blur-xl border-primary">
+		<DialogContent className="sm:max-w-3xl max-w-[90vw] bg-background/80 backdrop-blur-xl border-primary max-h-[85vh] flex flex-col">
 			<DialogHeader>
 				<DialogTitle className="text-2xl font-bold flex items-center gap-2 text-primary">
 					<BookText className="w-6 h-6" /> Markdown Guide
