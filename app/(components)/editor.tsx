@@ -31,6 +31,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import DeleteConfirmationDialog from "./deleteConfirmation";
 
 // Extend the original props interface with new, optional props for mobile UI
 interface ExtendedEditorProps extends EditorProps {
@@ -197,9 +198,10 @@ const Editor: React.FC<ExtendedEditorProps> = ({
 									initial={{ opacity: 0 }}
 									animate={{ opacity: 1 }}
 									className="flex items-center gap-2 text-primary"
+									title="Edit"
 								>
 									<Edit3 className="w-4 h-4" />
-									<span className="hidden md:inline">Edit</span>
+									<span className="hidden md:inline font-semibold">Edit</span>
 								</motion.div>
 							) : (
 								<motion.div
@@ -214,18 +216,7 @@ const Editor: React.FC<ExtendedEditorProps> = ({
 							)}
 						</AnimatePresence>
 					</Button>
-					{/* DELETE BUTTON RESTORED */}
-					{todo.id && (
-						<Button
-							onClick={onDeleteTodo}
-							variant="outline"
-							size="icon"
-							className="text-red-500 hover:text-red-600 hover:border-red-600"
-							title="Delete"
-						>
-							<Trash className="w-4 h-4" />
-						</Button>
-					)}
+					{todo.id && <DeleteConfirmationDialog onConfirm={onDeleteTodo} label="Delete Note" />}
 				</div>
 			</header>
 
@@ -236,14 +227,14 @@ const Editor: React.FC<ExtendedEditorProps> = ({
 						<Badge
 							key={tag}
 							variant="secondary"
-							className="flex items-center gap-1.5 hover:bg-secondary/80"
+							className="flex items-center gap-1.5 bg-primary/50 hover:bg-primary/60"
 						>
 							{tag}
 							<button
 								onClick={() => onRemoveTag(tag)}
-								className="rounded-full hover:bg-black/20 dark:hover:bg-white/20 -mr-1"
+								className="rounded-full hover:scale-110"
 							>
-								<X className="w-3 h-3" />
+								<X className="w-3 h-3 text-red-600 hover:font-extrabold hover:text-red-600" />
 							</button>
 						</Badge>
 					))}
