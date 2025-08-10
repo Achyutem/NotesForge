@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import TodoSidebar from "../(components)/todoSidebar";
 import Editor from "../(components)/editor";
-import { FilePlus2, Pencil, Upload } from "lucide-react";
+import { FilePlus2, FileDown } from "lucide-react";
 import { useTodoManager } from "../hooks/useTodoManager";
 import { useTodoEditorState } from "../hooks/useTodoEdtitorState";
 import { useShortcuts } from "../hooks/useShortcuts";
@@ -182,7 +182,7 @@ const Todos: React.FC = () => {
 								one using the button below.
 							</p>
 							<Button onClick={triggerImport} className="mt-6 gap-2">
-								<Upload className="w-4 h-4" />
+								<FileDown className="w-4 h-4" />
 								Import from CSV
 							</Button>
 						</div>
@@ -191,22 +191,6 @@ const Todos: React.FC = () => {
 			</main>
 
 			{renderFileInput()}
-
-			<TooltipProvider>
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<Button
-							onClick={handleCreateNewTodo}
-							className="fixed bottom-16 right-10 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-2xl hover:bg-primary/90 hover:scale-105 transition-all"
-						>
-							<Pencil className="w-8 h-8" />
-						</Button>
-					</TooltipTrigger>
-					<TooltipContent side="left">
-						<p>New Note (Ctrl+Shift+N)</p>
-					</TooltipContent>
-				</Tooltip>
-			</TooltipProvider>
 		</div>
 	);
 };
