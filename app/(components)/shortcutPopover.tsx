@@ -25,9 +25,9 @@ interface Props {
 const Kbd: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 	<kbd
 		className={cn(
-			"px-2 py-1 text-xs font-semibold text-foreground bg-muted border shadow-sm rounded-md",
-			"dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500",
-			"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" // Ensure focus style
+			"px-2 py-1 text-xs font-semibold text-foreground bg-primary/40 border shadow-sm rounded-md",
+			"dark:bg-primary/40 dark:text-gray-100 dark:border-gray-500",
+			"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 		)}
 	>
 		{children}
