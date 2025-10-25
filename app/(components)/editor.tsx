@@ -7,7 +7,6 @@ import remarkBreaks from "remark-breaks";
 import rehypeRaw from "rehype-raw";
 import {
 	HelpCircle,
-	Trash,
 	Tag,
 	X,
 	Clock,
