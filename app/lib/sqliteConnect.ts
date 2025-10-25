@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@libsql/client';
 
 let client: ReturnType<typeof createClient> | null = null;
