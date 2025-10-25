@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, FormEvent } from "react";
@@ -95,7 +96,7 @@ const AuthPage = () => {
 
 				<p className="text-gray-400 text-lg lg:text-xl max-w-xl mb-8">
 					{appName} makes note-taking effortless. Capture, organize, and format
-					your thoughts with Markdown support in a sleek and intuitive
+					your thoughts with <span className="font-bold italic text-[#A594F9]">Markdown support</span> in a sleek and intuitive
 					interface. Stay organized and never lose an idea again.
 				</p>
 
