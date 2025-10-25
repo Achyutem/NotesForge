@@ -1,9 +1,8 @@
 "use client";
 
-import React from "react";
-import { useState, FormEvent } from "react";
+import React, { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckSquare } from "lucide-react";
+import { ArrowRight, CheckSquare, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const AuthPage = () => {
@@ -17,6 +16,9 @@ const AuthPage = () => {
 	});
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
+
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
@@ -35,9 +37,7 @@ const AuthPage = () => {
 			const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
 			const response = await fetch(endpoint, {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
+				headers: { "Content-Type": "application/json" },
 				credentials: "include",
 				body: JSON.stringify({
 					email: formData.email,
@@ -51,18 +51,13 @@ const AuthPage = () => {
 				throw new Error(data.error || "Authentication failed");
 			}
 
-			// If registration is successful, switch to login mode
 			if (!isLogin) {
 				setIsLogin(true);
-				setFormData({
-					email: "",
-					password: "",
-					confirmPassword: "",
-				});
+				setFormData({ email: "", password: "", confirmPassword: "" });
 				return;
 			}
+
 			router.push("/dashboard");
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} catch (err: any) {
 			setError(err.message);
 		} finally {
@@ -70,7 +65,6 @@ const AuthPage = () => {
 		}
 	};
 
-	// Handle input changes
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFormData((prev) => ({
 			...prev,
@@ -80,7 +74,7 @@ const AuthPage = () => {
 
 	return (
 		<main className="min-h-screen bg-black text-white flex flex-col lg:flex-row">
-			{/* Left Section - Hero Content */}
+			{/* Left Section - Hero */}
 			<motion.div
 				initial={{ opacity: 0, x: -20 }}
 				animate={{ opacity: 1, x: 0 }}
@@ -111,24 +105,16 @@ const AuthPage = () => {
 							try {
 								const response = await fetch("/api/auth/login", {
 									method: "POST",
-									headers: {
-										"Content-Type": "application/json",
-									},
+									headers: { "Content-Type": "application/json" },
 									credentials: "include",
 									body: JSON.stringify({
 										email: "demo@demo.com",
-										password: "demo123",
+										password: "demo",
 									}),
 								});
-
 								const data = await response.json();
-
-								if (!response.ok) {
-									throw new Error(data.error || "Login failed");
-								}
-
+								if (!response.ok) throw new Error(data.error || "Login failed");
 								router.push("/dashboard");
-								// eslint-disable-next-line @typescript-eslint/no-explicit-any
 							} catch (err: any) {
 								console.error("Login error:", err);
 								setError(err.message);
@@ -144,7 +130,7 @@ const AuthPage = () => {
 					</button>
 				</div>
 
-				<div className="grid grid-cols-3 gap-8 max-w-xl xl:grid">
+				{/* <div className="grid grid-cols-3 gap-8 max-w-xl xl:grid">
 					{[
 						["1M+", "Active Users"],
 						["10M+", "Tasks Completed"],
@@ -157,7 +143,7 @@ const AuthPage = () => {
 							<p className="text-sm text-gray-400">{label}</p>
 						</div>
 					))}
-				</div>
+				</div> */}
 			</motion.div>
 
 			{/* Right Section - Auth Form */}
@@ -208,29 +194,54 @@ const AuthPage = () => {
 
 						<div className="space-y-2">
 							<label className="text-sm text-gray-400">Password</label>
-							<input
-								type="password"
-								name="password"
-								value={formData.password}
-								onChange={handleChange}
-								className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-[#A594F9] focus:ring-1 focus:ring-[#A594F9] transition-all outline-none"
-								placeholder="Enter your password"
-							/>
+							<div className="relative">
+								<input
+									type={showPassword ? "text" : "password"}
+									name="password"
+									value={formData.password}
+									onChange={handleChange}
+									className="w-full p-3 pr-10 rounded-lg bg-gray-800 border border-gray-700 focus:border-[#A594F9] focus:ring-1 focus:ring-[#A594F9] transition-all outline-none"
+									placeholder="Enter your password"
+								/>
+								<button
+									type="button"
+									onClick={() => setShowPassword((prev) => !prev)}
+									className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#A594F9] transition-colors"
+								>
+									{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+								</button>
+							</div>
 						</div>
 
+						{/* Confirm Password */}
 						{!isLogin && (
 							<div className="space-y-2">
 								<label className="text-sm text-gray-400">
 									Confirm Password
 								</label>
-								<input
-									type="password"
-									name="confirmPassword"
-									value={formData.confirmPassword}
-									onChange={handleChange}
-									className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-[#A594F9] focus:ring-1 focus:ring-[#A594F9] transition-all outline-none"
-									placeholder="Confirm your password"
-								/>
+								<div className="relative">
+									<input
+										type={showConfirmPassword ? "text" : "password"}
+										name="confirmPassword"
+										value={formData.confirmPassword}
+										onChange={handleChange}
+										className="w-full p-3 pr-10 rounded-lg bg-gray-800 border border-gray-700 focus:border-[#A594F9] focus:ring-1 focus:ring-[#A594F9] transition-all outline-none"
+										placeholder="Confirm your password"
+									/>
+									<button
+										type="button"
+										onClick={() =>
+											setShowConfirmPassword((prev) => !prev)
+										}
+										className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#A594F9] transition-colors"
+									>
+										{showConfirmPassword ? (
+											<EyeOff size={18} />
+										) : (
+											<Eye size={18} />
+										)}
+									</button>
+								</div>
 							</div>
 						)}
 
@@ -246,17 +257,6 @@ const AuthPage = () => {
 								: "Create Account"}
 						</button>
 					</form>
-
-					{/* {isLogin && (
-            <p className="mt-4 text-center text-sm text-gray-400">
-              Forgot your password?{" "}
-              <a
-                href="#"
-                className="text-[#A594F9] hover:underline">
-                Reset it here
-              </a>
-            </p>
-          )} */}
 				</div>
 			</motion.div>
 		</main>
