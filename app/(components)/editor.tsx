@@ -234,7 +234,7 @@ const Editor: React.FC<ExtendedEditorProps> = ({
 								onClick={() => onRemoveTag(tag)}
 								className="rounded-full hover:scale-110"
 							>
-								<X className="w-3 h-3 text-red-600 hover:font-extrabold hover:text-red-600" />
+								<X className="w-3 h-3 text-red-700 font-extrabold hover:font-bold hover:text-red-700" />
 							</button>
 						</Badge>
 					))}
