@@ -4,8 +4,8 @@
 	"private": true,
 	"scripts": {
 		"dev": "next dev --turbopack",
-  		"build": "next build",
-  		"start": "next start"
+		"build": "next build",
+		"start": "next start"
 	},
 	"dependencies": {
 		"@libsql/client": "^0.15.15",
@@ -36,6 +36,7 @@
 		"rehype-raw": "^7.0.0",
 		"remark-breaks": "^4.0.0",
 		"remark-gfm": "^4.0.0",
+		"sqlite3": "^5.1.7",
 		"tailwind-merge": "^3.0.1",
 		"tailwindcss-animate": "^1.0.7"
 	},
